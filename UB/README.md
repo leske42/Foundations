@@ -143,11 +143,19 @@ void function(int *ptr)
 }
 ```
 
-This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all C code ever where pointers are being dereferenced.*
+This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
 
 There are of course things that are way more difficult to implement than this. You can check the PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed at the moment counts as UB. Pointers themselves are just addresses though, and right now there is no way in C language to know what exactly lies behind (something I should be able to access or not) before dereferencing itself happens (and by then it's too late). In order to know this information beforehand, the compiler would have to implement a whole infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
+
+[create image for here]
 
 Letting these things be undefined by the C Standard makes the job of compiler developers easier and more straightforward. It also allows for faster code (all of the additional NULL-checks and lookups we mentioned earlier take up time). In fact, the strongest reason for keeping UB is that it makes C to be a very fast language (but not like my example) - by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
 
 ### Compiler Optimizations
+
+Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. 
+
+In order to be able to optimize your code effectively, the compiler adopts the following mindset: "if it isn't defined what will happen on x, **I will assume that x will never happen**."
+
+Logically this is sound. In care you are wrong and thing you assumed is impossible happens - whatever the result, you are good (since everything is allowed by the Standard). I will also show you why this mindset is super powerful in practice.
 
