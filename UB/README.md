@@ -108,7 +108,23 @@ This means: if the compiler wants to, it can follow the circle-to-square process
 
 ### How is this all relevant to UB?
 
+Remember the definition of UB:
 
+> Behavior, upon use of a nonportable or erroneous program construct or
+of erroneous data, for which this International Standard **imposes no
+requirements**.
+
+When the compiler encounters UB in your code, there is absolutely no requirements as to what it should translate it into. You have probably heard the phrase before that it can write code that "formats your hard drive". While it won't theoretically, it really can. It is **free to do anything**, and is not even required to document it.
+
+The tiny executable I have created for my presentation is a good example: in the C code, we dereference a `NULL` ptr in a loop, and then (in case we somehow survive) return 42. Compiled with `gcc`, our expectations are matched: we get Segmentation Fault. Compiled with `clang` however, nothing observable happens - we can also check that, for some strange reason, our program returned with a value of 48. And the point of UB is, that *this is fine.*
+
+There is a very good summary of this danger in John Regehr's [Guide to Undefined Behavior](https://blog.regehr.org/archives/213):
+
+> C and C++ are **unsafe in a strong sense**: executing an erroneous operation **causes the entire program to be meaningless**, as opposed to just the erroneous operation having an unpredictable result.
+
+As soon as you put UB anywhere in your code, circles don't need to be turned into squares anymore. They can be turned into anything. And remember that there is a *6 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
+
+[should put the picture /and credit/ here]
 
 ## Part III. Why does UB exist?
 
@@ -121,3 +137,4 @@ This means: if the compiler wants to, it can follow the circle-to-square process
 ## Footnotes
 
 ## TLDR for the lazy
+
