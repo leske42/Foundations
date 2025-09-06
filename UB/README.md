@@ -128,13 +128,26 @@ As soon as you put UB anywhere in your code, circles don't need to be turned int
 
 ## Part III. Why does UB exist?
 
-## Part IV. Detecting Undefined Behavior
+It is perfectly reasonable to ask why C has this built-in pitfall that obviously makes it very dangerous to use. The Standard is written by humans, after all. Since we have an exact list of what counts as undefined - could we not just go through that list and *define everything?*
 
-## Part V. UB @ 42
+Well, the short answer is, yes, we could. Some other languages do that. But at the same time, it comes with a price.
 
-## Resources for further reading
+Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. Let's put it in the Standard that this will result in an error being shown and the end of execution.
 
-## Footnotes
+Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** The compiler, however, cannot know if some function like the one below will *ever* receive a NULL pointer.
 
-## TLDR for the lazy
+```
+void function(int *ptr)
+{
+    *ptr = 42;
+}
+```
+
+This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all C code ever where pointers are being dereferenced.*
+
+There are of course things that are way more difficult to implement than this. You can check the PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed at the moment counts as UB. Pointers themselves are just addresses though, and right now there is no way in C language to know what exactly lies behind (something I should be able to access or not) before dereferencing itself happens (and by then it's too late). In order to know this information beforehand, the compiler would have to implement a whole infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
+
+Letting these things be undefined by the C Standard makes the job of compiler developers easier and more straightforward. It also allows for faster code (all of the additional NULL-checks and lookups we mentioned earlier take up time). In fact, the strongest reason for keeping UB is that it makes C to be a very fast language (but not like my example) - by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
+
+### Compiler Optimizations
 
