@@ -118,13 +118,22 @@ When the compiler encounters UB in your code, there is absolutely no requirement
 
 The tiny executable I have created for my presentation is a good example: in the C code, we dereference a `NULL` ptr in a loop, and then (in case we somehow survive) return 42. Compiled with `gcc`, our expectations are matched: we get Segmentation Fault. Compiled with `clang` however, nothing observable happens - we can also check that, for some strange reason, our program returned with a value of 48. And the point of UB is, that *this is fine.*
 
+<div align="center">
+<img src="./img/img4.png" width="400">
+</div>
+<br>
+
 There is a very good summary of this danger in John Regehr's [Guide to Undefined Behavior](https://blog.regehr.org/archives/213):
 
 > C and C++ are **unsafe in a strong sense**: executing an erroneous operation **causes the entire program to be meaningless**, as opposed to just the erroneous operation having an unpredictable result.
 
 As soon as you put UB anywhere in your code, circles don't need to be turned into squares anymore. They can be turned into anything. And remember that there is a *6 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
 
-[should put the picture /and credit/ here]
+<div align="center">
+<img src="./img/img1.png" width="600">
+
+[put credit!!!]
+</div>
 
 ## Part III. Why does UB exist?
 
@@ -147,7 +156,14 @@ This cannot be caught at compile-time. Still, if the standard says that derefere
 
 There are of course things that are way more difficult to implement than this. You can check the PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed at the moment counts as UB. Pointers themselves are just addresses though, and right now there is no way in C language to know what exactly lies behind (something I should be able to access or not) before dereferencing itself happens (and by then it's too late). In order to know this information beforehand, the compiler would have to implement a whole infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
 
-[create image for here]
+<div align="center">
+<picture>
+   <source media="(min-width: 769px)" srcset="./img/img5.png">
+   <source media="(max-width: 768px)" srcset="./img/img5_mb.png">
+   <img alt="Fallback image" src="./img/img5.png">
+</picture>
+</div>
+<br>
 
 Letting these things be undefined by the C Standard makes the job of compiler developers easier and more straightforward. It also allows for faster code (all of the additional NULL-checks and lookups we mentioned earlier take up time). In fact, the strongest reason for keeping UB is that it makes C to be a very fast language (but not like my example) - by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
 
