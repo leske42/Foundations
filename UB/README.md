@@ -169,9 +169,51 @@ Letting these things be undefined by the C Standard makes the job of compiler de
 
 ### Compiler Optimizations
 
-Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. 
+Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. In the Standard, however, signed integer overflow is listed as undefined: this means the Standard claims that no one quite knows what will happen in this case. And the reason for this is not that it might happen different on another architecture. The reason, and this might sound weird, is to let the compiler think: *signed integer overflow is impossible*. In other words, after 2147483647 comes 2147483648 and we can count further until infinity.
+
+No matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
 
 In order to be able to optimize your code effectively, the compiler adopts the following mindset: "if it isn't defined what will happen on x, **I will assume that x will never happen**."
 
 Logically this is sound. In care you are wrong and thing you assumed is impossible happens - whatever the result, you are good (since everything is allowed by the Standard). I will also show you why this mindset is super powerful in practice.
+
+One super common optimization technique the compiler uses to make your code faster is *loop unrolling*. If you have a loop that does 1 operation for N iterations, the compiler transforms it into another that does, let's say, 4 operations for N/4 iterations instead (you for sure need to do the leftover separately ).
+
+```
+while (i <= N)
+{
+    arr[i] += val;
+    i++;
+}
+```
+
+Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `N` is, we might deal with an infinite loop here (in case `N` is 2147483647 and `i` overflows). But it only makes sense to unroll a loop that isn't infinite. If we could know *for sure* this loop won't overflow, we could turn it into something like
+
+```
+while (i + 3 <= N)
+{
+    arr[i] += val;
+    arr[i + 1] += val;
+    arr[i + 2] += val;
+    arr[i + 3] += val;
+    i += 4;
+}
+while (i <= N)
+{
+    arr[i] += val;
+    i++;
+}
+```
+
+<small>See my footnote 5 for why this makes your program faster.</small>
+
+And well, if signed int is impossible to overflow, we achieve just that. So, for this purpose, yes, the compiler will assume that 2147483648 comes after 2147483647, we can count like this till infinity and beyond.
+
+### Historical reasons
+
+Finally, there is one more reason for why we have UB in C language, and it's way less exciting than the previous ones (but not in any way less important). By the time the C standardization began, the language was already widely in use (this is also true for C++ for the matter). There were already C compilers in use, and they already behaved a specific way, and the people who had to come up with the Standard could not declare practices that were already widely in use "illegitimate".
+
+Other languages have been designed with memory-safety in mind, a lot of the times inspired by a willingness to learn from C's mistakes. It is much easier to build something like that from the ground up, than to change a language's inner workings when they are already foundational part of big projects.
+
+
 
