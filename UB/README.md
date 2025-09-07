@@ -24,19 +24,27 @@ In my presentation I have provided some excerpts to show how the C standard look
 
 The thing is, one doesn't need to read the C Standard to be decent at writing C language. YouTube tutorials or other learning specific material is probably better suited for this case.
 
-**Who really needs to know the C Standard to the letter though are the guys who write the C compiler.** Since the compiler is the program which will parse your `.c` files in order to be able to process them, it needs to know **exactly what** counts as valid C syntax and what is not acceptable. Remember this because it will be very useful in understanding UB later on.
+**Who really needs to know the C Standard to the letter though are the guys who write the C compiler.** Since the compiler is the program which will parse your `.c` files in order to be able to process them, it needs to know **exactly what** counts as valid C syntax and what is not acceptable.
+
+Remember this because it will be very useful in understanding UB later on.
 
 ### The concept of "behavior"
 
-The C Standard describes different types of *behavior*. Behavior itself is described as "external appearance or action". This concept mostly comes in handy when the compiler needs to decide how to implement a specific part of your code *in practice*.
+The C Standard describes different types of *behavior*. Behavior itself is described as "external appearance or action".
 
-For example, there are different kind of instructions a computer with our architecture (x86-64) can use for a right bitshift, but only one operator for the same (`>>`) in C. Since the different instructions behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. The C standard specifies **implementation-defined behavior** for this case: different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
+One can understand it like this: there is an action belonging to everything you write in your C code. <br>
+For example, if you have declared `int i;` in your code, for the expression `i = 5;` the action is that `i` will get assigned the value `5`. <br>
+For the expression `i++;` the action is that `i` will get incremented.
 
-You can find the definitions for each of the standard-described behaviors in my presentation, but here we care about a specific one: **undefined behavior**. It is described in the standard as the following:
+The behavior that belongs to these expressions is clearly defined by the Standard. But not all behavior is defined as clearly as these.
+
+There are a lot of different "behaviors" described by the standard, you can find the definitions for these in my presentation or in my Footnote #1. Here we only care about a specific one: **undefined behavior**. It is described in the standard as the following:
 
 > behavior, upon use of a nonportable or erroneous program construct or of erroneous data, for which this International Standard **imposes no requirements.**
 
-"Imposes no requirements" here means: if the compiler encounters something in your code that falls under this category, there is absolutely no requirements as to *how it should translate it*. Or as the standard says:
+"Imposes no requirements" here means: you may have these things in your C code, but the C Standard does not specify to what action it should eventually lead to.
+
+For example, if you take our previous example, and add `i /= 0;` in your code, instead of saying this leads to an error (like floating-point exception), the Standard leaves it completely open-ended what will happen.
 
 > Possible undefined behavior ranges from ignoring the situation
 completely with unpredictable results, to behaving during translation or
@@ -45,7 +53,7 @@ environment (with or without the issuance of a diagnostic message), to
 terminating a translation or execution (with the issuance of a diagnostic
 message).
 
-Moreover, the compiler can choose to assume that it will never encounter any of the such in your code, but this is a bit more complicated concept, so we will talk about this in detail later.
+Any of this might happen, but these are also just examples. The Standard claims we cannot know the consequences.
 
 ### Common examples
 
@@ -63,7 +71,7 @@ Some arbitrary examples from this list that you might recognize from your C proj
 
 You can find more examples in my presentation (or even more in the standard itself) if you are interested.
 
-So, the answer to *what is Undefined Behavior?* is quite simple: UB is everything in your code which translation is either not defined in the standard at all, or is *defined explicitly as undefined.*
+So, the answer to *what is Undefined Behavior?* is quite simple: UB is everything in your code, the behavior of which is either not defined in the standard at all, or is *defined explicitly as undefined.*
 
 ## Part II - Is UB the same as Segmentation Fault?
 
@@ -85,26 +93,28 @@ Just like you would parse a config file for `cub3D` for example, the compiler is
 
 The C Standard uses the concept of an **abstract machine** to describe this relationship between your code and the executable. If you think you don't know what an abstract machine is, you are probably wrong about that. Abstract machines are present in a lot of grade school math workbooks. They look like the following:
 
-They are abstract because the inner workings of the machine are not described in detail. We know the *rule*: a circle goes in and a square comes out, but what happens in between, *how* the transformation is achieved doesn't really concern us. We don't know anything about the hardware (cogs? registers? unicorns? a data bus?) but we don't need to care.
+<div align="center">
+<img src="./img/img2.png" width="300">
+</div>
+<br>
 
-The Standard tells the compiler-writers that what they put into the byte-code that fills the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. More precisely, they say:
+They are abstract because the inner workings of the machine are not described in detail. We know the *rule:* a square goes in and a circle comes out, but what happens in between, *how* the transformation is achieved doesn't really concern us. We don't know anything about the hardware (cogs? registers? unicorns? a data bus?) but we don't need to care.
+
+Now here is the super important part: your code itself is nothing but a blueprint, a high-level abstraction defining *"I want all squares to be turned into circles."* It is the compiler's job to, based on this, write some code that will then *actually run* and accomplish that.
+
+The Standard describes this saying what the compiler puts into the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. You can read my Footnote #2 if you want to know what exactly counts as observable behavior, but for a simplified explanation, you can read this excerpt from the Standard:
 
 > 5.1.2.3.6. At program termination, all data written into ﬁles shall be
 identical to the result that execution of the program according to the
 abstract semantics would have produced.
 
-The "abstract semantics" they mention is your C code. This means your code itself is nothing but an abstraction defining *"I want all circles to be turned into squares."* Now it's the compiler's job to write some code to accomplish that.
+The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
 
-> 5.1.2.3.9. „An implementation might deﬁne a one-to-one correspondence between
-abstract and actual semantics: at every sequence point, the values of the actual
-objects would agree with those speciﬁed by the abstract semantics. The keyword
-volatile would then be redundant.<br>
-5.1.2.3.10. Alternatively, an implementation **might perform various optimizations**
-within each translation unit, such that the actual semantics would agree with the
-abstract semantics only when making function calls across translation unit
-boundaries.”
+[img place]
 
-This means: if the compiler wants to, it can follow the circle-to-square process *you* describe in *your* code step-by-step (as closely as the limitations of architecture allow). **But it doesn't have to**. As long as it sees you intended all circles to become squares and it achieves the same, it's good to go - even if the two implementations follow very different logic.
+Here I have the picture of a tiny C program I wrote and the LLVM intermediate representation of what the compiler turned it into. You can see that the entire loop is gone, the translation doesn't really resemble our original idea anymore (translating this code will come with some other special surprises too, but we will return to that later).
+
+If the compiler wants to, it can follow the square-to-circle process *you* describe in *your* code step-by-step (as closely as the limitations of architecture allow). **But it doesn't have to**. As long as it sees you intended all squares to become circles and it achieves the same, it's good to go - even if the two implementations follow very different logic.
 
 ### How is this all relevant to UB?
 
@@ -127,12 +137,19 @@ There is a very good summary of this danger in John Regehr's [Guide to Undefined
 
 > C and C++ are **unsafe in a strong sense**: executing an erroneous operation **causes the entire program to be meaningless**, as opposed to just the erroneous operation having an unpredictable result.
 
-As soon as you put UB anywhere in your code, circles don't need to be turned into squares anymore. They can be turned into anything. And remember that there is a *6 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
+As soon as you put UB anywhere in your code, squares don't need to be turned into circles anymore. They can be turned into anything.
+
+<div align="center">
+<img src="./img/img3.png" width="400">
+</div>
+<br>
+
+And remember that there is a *6 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
 
 <div align="center">
 <img src="./img/img1.png" width="600">
 
-[put credit!!!]
+This image is taken from this very cool [guide](https://pvs-studio.com/en/blog/posts/cpp/1215/) to Undefined Behavior by Dmitry Sviridkin and Andrey Karpov
 </div>
 
 ## Part III. Why does UB exist?
@@ -141,9 +158,11 @@ It is perfectly reasonable to ask why C has this built-in pitfall that obviously
 
 Well, the short answer is, yes, we could. Some other languages do that. But at the same time, it comes with a price.
 
-Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. Let's put it in the Standard that this will result in an error being shown and the end of execution.
+Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. Let's put it in the Standard that this will result in an error being shown and the end of execution. Better than letting the compiler format our hard drive at least.
 
-Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** The compiler, however, cannot know if some function like the one below will *ever* receive a NULL pointer.
+Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** They can choose to refuse compilation if they can see the coder violated the rules (let's say you forget a semicolon somewhere), but if they choose to compile, they have to ensure the Standard is followed to the letter.
+
+The compiler, however, cannot know if some function like the one below will *ever* receive a NULL pointer.
 
 ```
 void function(int *ptr)
@@ -152,13 +171,13 @@ void function(int *ptr)
 }
 ```
 
-This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
+This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does, even if this only happens at runtime. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
 
 There are of course things that are way more difficult to implement than this. You can check the PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed at the moment counts as UB. Pointers themselves are just addresses though, and right now there is no way in C language to know what exactly lies behind (something I should be able to access or not) before dereferencing itself happens (and by then it's too late). In order to know this information beforehand, the compiler would have to implement a whole infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
 
 <div align="center">
 <picture>
-   <source media="(min-width: 769px)" srcset="./img/img5.png">
+   <source media="(min-width: 769px)" srcset="./img/img5_mb.png">
    <source media="(max-width: 768px)" srcset="./img/img5_mb.png">
    <img alt="Fallback image" src="./img/img5.png">
 </picture>
@@ -169,7 +188,9 @@ Letting these things be undefined by the C Standard makes the job of compiler de
 
 ### Compiler Optimizations
 
-Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. In the Standard, however, signed integer overflow is listed as undefined: this means the Standard claims that no one quite knows what will happen in this case. And the reason for this is not that it might happen different on another architecture. The reason, and this might sound weird, is to let the compiler think: *signed integer overflow is impossible*. In other words, after 2147483647 comes 2147483648 and we can count further until infinity.
+Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. In the Standard, however, signed integer overflow is listed as undefined: this means the Standard claims that no one quite knows what will happen if we add 1 to `INT_MAX`.
+
+And the reason for this is not that it might happen different on another architecture. The reason, and this might sound weird, is to let the compiler think: *signed integer overflow is impossible*. In other words, after 2147483647 comes 2147483648 and we can count further until infinity.
 
 No matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
 
@@ -221,12 +242,49 @@ By the time of writing the first C standard, different compilers were already in
 - Instead, the standard incorporated already existing behaviors
 - If different compilers handled a case differently → rather left UB
 
+### Final thoughts
+
+//would be nice to write here about the tradeoff - as long as you write flawless code, the compiler can very efficiently work together with you to optimize it, and you will end up with a very fast executable. But as soon as you make mistakes, the compiler ends up working *against you* instead of with you.
+The compiler basically thinks of you as a professional who knows what they are doing. The issue is, there is no single man on earth who never makes mistakes.
+
+<div align="center">
+<picture>
+   <source media="(min-width: 769px)" srcset="./img/img6_mb.png">
+   <source media="(max-width: 768px)" srcset="./img/img6_mb.png">
+   <img alt="Fallback image" src="./img/img6.png">
+</picture>
+</div>
+<br>
+
 ## Part IV. UB @ 42
 
 In my presentation I have provided a non-comprehensive list of how to fight UB that can occur in your 42 projects. 
 
-The most important of these is to **spread aware of UB on campus**. Make it a topic during coding and evaluations. I find it a big mistake that we mostly code in C and C++ and this topic is barely discussed or know about despite its obvious importance.
+The most important of these is to **spread awareness of UB on campus**. Make it a topic during coding and evaluations. I find it a big mistake that we mostly code in C and C++ and this topic is barely discussed or known about despite its obvious importance.
 
-A good way to check if you code has UB is to **compile it with optimization flags**. This is because a lot of hidden pitfalls of UB are only taken advantage of by the compiler when aggressive optimizations are enabled. This is not a foolproof way to catch issues, but one thing is for sure: a code that has no UB has to work the same compiled with `-O3` as without.
+A good way to check if your code has UB is to **compile it with optimization flags**. This is because a lot of hidden pitfalls of UB are only taken advantage of by the compiler when aggressive optimizations are enabled. This is not a foolproof way to catch issues, but one thing is for sure: a code that has no UB has to work the same compiled with `-O3` as without.
 
-Static code analyzers like `scan-build` are also able to detect more obvious cases that might be visible at compile-time. 
+Static code analyzers like `scan-build` are also able to detect more obvious cases that might be visible at compile-time. For runtime checking, you can use the `-fsanitize=undefined` flag at compilation and let UBSan look for issues. This will report any UB it encounters at runtime, but just like before, not seeing errors does not automatically mean your code is free from issues. There could be a problem in your code that is only triggered in some very specific cases, or already removed by the compiler during optimization. //would have to explain why is is an issue... holy hell this topic is hard
+
+//discussion about 42 subjects
+
+## Useful links for further reading
+
+This is the end of UB guide. Thanks for reading so far and hopefully you could find some knowledge you can take with yourself for the future. For me, learning about the way the compiler think when it processes our files completely changed how I look at C language.
+
+Here are some sources I have read on this topic before my presentation that might also be interesting for you:
+- [LLVM Project Blog – What every C programmer should know about Undefined Behavior](https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html) (by Chris Lattner)
+- [A Guide to Undefined Behavior in C and C++](https://blog.regehr.org/archives/213) (by John Regehr)
+- [C++ programmer's guide to Undefined Behavior](https://pvs-studio.com/en/blog/posts/cpp/1215/) (by Dmitry Sviridkin and Andrey Karpov)
+
+## Footnotes
+
+### Footnote 1. Other Types of Behavior
+
+For example, there are different kind of instructions a computer with our architecture (x86-64) can use for a right bitshift, but only one operator for the same (`>>`) in C. Since the different instructions behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. The C standard specifies **implementation-defined behavior** for this case: different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
+
+### Footnote 2. Compilation Process
+
+### Footnote 3. Observable Behavior
+
+### Footnote 5. Heat Control
