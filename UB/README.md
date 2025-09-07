@@ -215,5 +215,18 @@ Finally, there is one more reason for why we have UB in C language, and it's way
 
 Other languages have been designed with memory-safety in mind, a lot of the times inspired by a willingness to learn from C's mistakes. It is much easier to build something like that from the ground up, than to change a language's inner workings when they are already foundational part of big projects.
 
+By the time of writing the first C standard, different compilers were already in standard use.
+- Certain important projects were written assuming specific compiler behavior
+- Forcing them to change compiler would have required serious refactoring
+- Instead, the standard incorporated already existing behaviors
+- If different compilers handled a case differently → rather left UB
 
+## Part IV. UB @ 42
 
+In my presentation I have provided a non-comprehensive list of how to fight UB that can occur in your 42 projects. 
+
+The most important of these is to **spread aware of UB on campus**. Make it a topic during coding and evaluations. I find it a big mistake that we mostly code in C and C++ and this topic is barely discussed or know about despite its obvious importance.
+
+A good way to check if you code has UB is to **compile it with optimization flags**. This is because a lot of hidden pitfalls of UB are only taken advantage of by the compiler when aggressive optimizations are enabled. This is not a foolproof way to catch issues, but one thing is for sure: a code that has no UB has to work the same compiled with `-O3` as without.
+
+Static code analyzers like `scan-build` are also able to detect more obvious cases that might be visible at compile-time. 
