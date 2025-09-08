@@ -36,7 +36,7 @@ One can understand it like this: there is an action belonging to everything you 
 For example, if you have declared `int i;` in your code, for the expression `i = 5;` the action is that `i` will get assigned the value `5`. <br>
 For the expression `i++;` the action is that `i` will get incremented.
 
-The behavior that belongs to these expressions is clearly defined by the Standard. Some other behaviors are *less clearly* defined, meaning the Standard says, there are possible variations of what might happen on a certain expression (you can find more info on these in my presentation or in my Footnote #1). And in other cases, the behavior for a certain expression is *not defined at all*. You might have guessed by now that this is what we call **undefined behavior**.
+The behavior that belongs to these expressions is clearly defined by the Standard. Some other behaviors are *less clearly* defined, meaning the Standard says, there are possible variations of what might happen on a certain expression (you can find more info on these in my presentation or in my [Footnote #1](#footnote-1-the-less-clearly-defined)). And in other cases, the behavior for a certain expression is *not defined at all*. You might have guessed by now that this is what we call **undefined behavior**.
 
 It is described in the standard as the following:
 
@@ -282,9 +282,30 @@ Here are some sources I have read on this topic before my presentation that migh
 
 ## Footnotes
 
-### Footnote 1. Other Types of Behavior
+### Footnote 1. The Less Clearly Defined
 
-For example, there are different kind of instructions a computer with our architecture (x86-64) can use for a right bitshift, but only one operator for the same (`>>`) in C. Since the different instructions behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. The C standard specifies **implementation-defined behavior** for this case: different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
+There is a lot of "grey areas" in the Standard between clearly defined and undefined behavior. I didn't want to list them in the main text, as this is not the main point of this guide, but I will provide a quick overview here.
+
+The first of such is **implementation-deﬁned behavior**. The defintion of this is the following:
+
+> Unspeciﬁed behavior, where each implementation **documents** how the choice is made.
+
+For example, there are different kind of instructions a computer with our architecture (x86-64) can use for a right bitshift, but only one operator for the same (`>>`) in C. Since the different instructions behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. Different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
+
+**Locale-speciﬁc behavior** is described as the following:
+
+> Behavior that depends on local conventions of nationality, culture, and language that each
+implementation **documents**. An example of locale-speciﬁc behavior is whether the `islower` function returns true for
+characters other than the 26 lowercase Latin letters.
+
+Again, no matter the behavior of choice, needs to be properly documented.
+
+Finally, **unspecified behavior** (often confused with undefined behavior) is where the Standard
+
+> provides two or more possibilities and imposes no further requirements on which is chosen in any Instance.
+
+An example of unspeciﬁed behavior is the order in which the arguments to a function are
+evaluated. For example, from the code `write(1, string(), len());` alone, it is impossible to tell whenever `string()` function (this returns a `char *`) or `len()` function (this returns an `int`) will be called first.
 
 ### Footnote 2. Compilation Process
 
