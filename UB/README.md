@@ -102,7 +102,7 @@ They are abstract because the inner workings of the machine are not described in
 
 Now here is the super important part: your code itself is nothing but a blueprint, a high-level abstraction defining *"I want all squares to be turned into circles."* It is the compiler's job to, based on this, write some code that will then *actually run* and accomplish that.
 
-The Standard describes this saying what the compiler puts into the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. You can read my Footnote #2 if you want to know what exactly counts as observable behavior, but for a simplified explanation, you can read this excerpt from the Standard:
+The Standard describes this saying what the compiler puts into the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. You can read my [Footnote #2](#footnote-2-observable-behavior) if you want to know what exactly counts as observable behavior, but for a simplified explanation, you can read this excerpt from the Standard:
 
 > 5.1.2.3.6. At program termination, all data written into ﬁles shall be
 identical to the result that execution of the program according to the
@@ -307,9 +307,7 @@ implementation documents. An example of locale-speciﬁc behavior is whether the
 
 Again, no matter the behavior of choice, it needs to be properly documented.
 
-### Footnote 2. Compilation Process
-
-### Footnote 3. Observable Behavior
+### Footnote 2. Observable Behavior
 
 What counts as "observable behavior" is a bit more complex than how I presented above. For the most part, it is indeed about files your program will modify (be that the terminal or a text file or anything else), because this is something you can observe from the outside.
 
@@ -342,4 +340,4 @@ the loop has to be left completely intact. Imagine there is an external device t
 
 While often used simply to prevent optimizations done to specific parts of the code, accesses to `volatile` objects count as observable because another outside source is supposedly communicating with your program through this means.
 
-### Footnote 5. Heat Control
+### Footnote 3. Heat Control
