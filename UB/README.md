@@ -110,11 +110,14 @@ abstract semantics would have produced.
 
 The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
 
-[img place]
+<div align="center">
+<img src="./img/img7.png" width="600">
+</div>
+<br>
 
-Here I have the picture of a tiny C program I wrote and the LLVM intermediate representation of what the compiler turned it into. You can see that the entire loop is gone, the translation doesn't really resemble our original idea anymore (translating this code will come with some other special surprises too, but we will return to that later).
+Here I have the picture of a tiny C program I wrote and an optimized intermediate representation of what `gcc` turned it into. You can see that the entire loop is gone, the translation doesn't really resemble our original idea anymore - but what eventually gets printed is the same.
 
-If the compiler wants to, it can follow the square-to-circle process *you* describe in *your* code step-by-step (as closely as the limitations of architecture allow). **But it doesn't have to**. As long as it sees you intended all squares to become circles and it achieves the same, it's good to go - even if the two implementations follow very different logic.
+If the compiler wants to, it can follow the square-to-circle process *you* describe in *your* code step-by-step (as closely as the limitations of architecture allow). **But it doesn't have to**. As long as it sees you intended all squares to become circles and it achieves that, it's good to go - even if the two implementations follow very different logic.
 
 ### How is this all relevant to UB?
 
