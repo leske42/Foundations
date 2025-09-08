@@ -36,21 +36,21 @@ One can understand it like this: there is an action belonging to everything you 
 For example, if you have declared `int i;` in your code, for the expression `i = 5;` the action is that `i` will get assigned the value `5`. <br>
 For the expression `i++;` the action is that `i` will get incremented.
 
-The behavior that belongs to these expressions is clearly defined by the Standard. But not all behavior is defined as clearly as these.
+The behavior that belongs to these expressions is clearly defined by the Standard. Some other behaviors are *less clearly* defined, meaning the Standard says, there are possible variations of what might happen on a certain expression (you can find more info on these in my presentation or in my Footnote #1). And in other cases, the behavior for a certain expression is *not defined at all*. You might have guessed by now that this is what we call **undefined behavior**.
 
-There are a lot of different "behaviors" described by the standard, you can find the definitions for these in my presentation or in my Footnote #1. Here we only care about a specific one: **undefined behavior**. It is described in the standard as the following:
+It is described in the standard as the following:
 
 > behavior, upon use of a nonportable or erroneous program construct or of erroneous data, for which this International Standard **imposes no requirements.**
 
 "Imposes no requirements" here means: you may have these things in your C code, but the C Standard does not specify to what action it should eventually lead to.
 
-For example, if you take our previous example, and add `i /= 0;` in your code, instead of saying this leads to an error (like floating-point exception), the Standard leaves it completely open-ended what will happen.
+For example, if you take our previous code, and add `i /= 0;`, instead of saying this leads to an error (like floating-point exception), the Standard leaves it completely open-ended what will happen.
 
-> Possible undefined behavior ranges from ignoring the situation
-completely with unpredictable results, to behaving during translation or
+> Possible undefined behavior ranges from **ignoring the situation
+completely with unpredictable results**, to behaving during translation or
 program execution in a documented manner characteristic of the
 environment (with or without the issuance of a diagnostic message), to
-terminating a translation or execution (with the issuance of a diagnostic
+**terminating a translation or execution** (with the issuance of a diagnostic
 message).
 
 Any of this might happen, but these are also just examples. The Standard claims we cannot know the consequences.
