@@ -286,26 +286,25 @@ Here are some sources I have read on this topic before my presentation that migh
 
 There is a lot of "grey areas" in the Standard between clearly defined and undefined behavior. I didn't want to list them in the main text, as this is not the main point of this guide, but I will provide a quick overview here.
 
-The first of such is **implementation-deﬁned behavior**. The defintion of this is the following:
-
-> Unspeciﬁed behavior, where each implementation **documents** how the choice is made.
-
-For example, there are different kind of instructions a computer with our architecture (x86-64) can use for a right bitshift, but only one operator for the same (`>>`) in C. Since the different instructions behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. Different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
-
-**Locale-speciﬁc behavior** is described as the following:
-
-> Behavior that depends on local conventions of nationality, culture, and language that each
-implementation **documents**. An example of locale-speciﬁc behavior is whether the `islower` function returns true for
-characters other than the 26 lowercase Latin letters.
-
-Again, no matter the behavior of choice, needs to be properly documented.
-
-Finally, **unspecified behavior** (often confused with undefined behavior) is where the Standard
+The first of such is **unspecified behavior** (often confused with undefined behavior). Here the Standard
 
 > provides two or more possibilities and imposes no further requirements on which is chosen in any Instance.
 
 An example of unspeciﬁed behavior is the order in which the arguments to a function are
 evaluated. For example, from the code `write(1, string(), len());` alone, it is impossible to tell whenever `string()` function (this returns a `char *`) or `len()` function (this returns an `int`) will be called first.
+
+**Implementation-deﬁned behavior** is a stricter subgroup of unspecified behavior. The defintion of this is the following:
+
+> Unspeciﬁed behavior, where each implementation **documents** how the choice is made.
+
+What makes this stricter is the need for documentation. For example, there are different ways a computer can perform right bitshift, but only one operator for the same (`>>`) in C. Since the different approaches behave a little bit differently (regarding the preservation of the sign bit for example), the compiler needs to make a choice about which one to use. Different compilers might decide to implement different methods of bitshifting, but they need to document their choice in each case.
+
+**Locale-speciﬁc behavior** is then a subgroup of implementation-defined behavior, described as the following:
+
+> Behavior that depends on local conventions of nationality, culture, and language that each
+implementation documents. An example of locale-speciﬁc behavior is whether the `islower` function returns true for characters other than the 26 lowercase Latin letters.
+
+Again, no matter the behavior of choice, it needs to be properly documented.
 
 ### Footnote 2. Compilation Process
 
