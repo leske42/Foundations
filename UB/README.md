@@ -108,7 +108,7 @@ The Standard describes this saying what the compiler puts into the binary does n
 identical to the result that execution of the program according to the
 abstract semantics would have produced.
 
-The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
+This is one is also called the **as-if rule**. The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
 
 <div align="center">
 <img src="./img/img7.png" width="600">
@@ -275,10 +275,11 @@ Static code analyzers like `scan-build` are also able to detect more obvious cas
 
 This is the end of UB guide. Thanks for reading so far and hopefully you could find some knowledge you can take with yourself for the future. For me, learning about the way the compiler think when it processes our files completely changed how I look at C language.
 
-Here are some sources I have read on this topic before my presentation that might also be interesting for you:
+Here are some sources for further reading (with a lot more practical examples that I have provided) that might also be interesting for you:
 - [LLVM Project Blog – What every C programmer should know about Undefined Behavior](https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html) (by Chris Lattner)
 - [A Guide to Undefined Behavior in C and C++](https://blog.regehr.org/archives/213) (by John Regehr)
 - [C++ programmer's guide to Undefined Behavior](https://pvs-studio.com/en/blog/posts/cpp/1215/) (by Dmitry Sviridkin and Andrey Karpov)
+- [Examples for Undefined Behavior on cppreference](https://en.cppreference.com/w/c/language/behavior.html)
 
 ## Footnotes
 
@@ -309,5 +310,36 @@ Again, no matter the behavior of choice, it needs to be properly documented.
 ### Footnote 2. Compilation Process
 
 ### Footnote 3. Observable Behavior
+
+What counts as "observable behavior" is a bit more complex than how I presented above. For the most part, it is indeed about files your program will modify (be that the terminal or a text file or anything else), because this is something you can observe from the outside.
+
+But all reads and writes to `volatile` objects also count as observable.
+
+What are `volatile` objects?
+
+- "Object" here means anything, even a `char` or an `int`, not necessarily in a "C++ object" sense.
+- `volatile` is a keyword in C and C++ like `const`. Just like you could have an `int` or a `const int`, you can also have a `volatile int` and so on.
+
+In practice, `volatile` means the value of this object can be changed at any time *by an external source*, unrelated to what is happening in your code. In practice this is mostly needed in embedded sytems - let's say a certain memory location connects you with another device that communicates you by writing there. You keep reading it and each time you read it, something else is written there, even though none of that is done by *you* from *your code*. `volatile` is your way of letting the compiler know this will happen, so it will never consider to remove or reorganize these reads for convenience.
+
+This is important from the aspect of optimizations because if you have a loop like this:
+```
+int i = 0;
+while (i < 1000)
+    i++;
+```
+The compiler is free to turn that into
+```
+int i = 1000;
+```
+On the other hand, if you change it to
+```
+volatile int i = 0;
+while (i < 1000)
+    i++;
+```
+the loop has to be left completely intact. Imagine there is an external device that also has access to `i` and modifies it at the same time you do. Any time you check it in the while loop, its value might be 1, 2101, or 2147483647, anything that fits into `int` range. Therefore you cannot, at any point have assumptions about the value of it, including the assumption that it will be set to a 1000 when the loop is done.
+
+While often used simply to prevent optimizations done to specific parts of the code, accesses to `volatile` objects count as observable because another outside source is supposedly communicating with your program through this means.
 
 ### Footnote 5. Heat Control
