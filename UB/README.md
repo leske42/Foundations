@@ -341,3 +341,21 @@ the loop has to be left completely intact. Imagine there is an external device t
 While often used simply to prevent optimizations done to specific parts of the code, accesses to `volatile` objects count as observable because another outside source is supposedly communicating with your program through this means.
 
 ### Footnote 3. Heat Control
+
+## TLDR for the lazy
+
+In this last section I will provide a quick summary to those who don't feel like reading through this guide (although I can promise it's really worth it). It's still better to walk away with some information than no information at all, so I will try to summarize the most important points.
+
+- The C code you write will never "run" on your machine. The compiler that translates it into a binary file (like `a.out`) writes the actual program that gets executed.
+- It is also free to rewrite your logic as long as the results are the same as you intended.
+- The compiler only has one rulebook: the C Standard. The Standard decides what your code “means” and how it should be interpreted when creating the real program.
+- Most of the time this rulebook is clear. `int i = 5;` for example has a quite simple meaning.
+- But for some things that can happen in your code (like signed integer overflow), the rulebook has no rule as to what it should be turned into (you can still read the full version if you wonder why `INT_MAX + 1` won't give you `INT_MIN`).
+- This is called Undefined Behavior (UB), and because the Standard specifies no rules, the compiler is free to do anything.
+- This means that having a single instance of UB anywhere in your code **makes your entire program meaningless**. It might crash, print nonsense, but the scary part is that quite often it just appears to work (for the time being), but you can’t trust it anymore.
+- A different compiler or a different optimization level might create **something entirely different from the same code** if it has UB in it.
+- UB is actually super common. You probably have it in at least one of your 42 projects, but quite possibly more.
+
+Please go back and read the full guide if this sounds scary enough.
+
+May the gods of cursed C code have mercy on our soul.
