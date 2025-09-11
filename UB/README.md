@@ -342,6 +342,43 @@ While often used simply to prevent optimizations done to specific parts of the c
 
 ### Footnote 3. Heat Control
 
+This footnote is about what makes an optimization effective.
+
+Optimizations are modifications done to an already existing code, without changing what it achieves, in order to save resources. The resource is mostly time (as in the goal is faster/smoother execution), but it could be computational power, memory usage, even the size of the executable. You can optimize for a lot of different factors, this will always be unique to your specific purpose and environment. In the following text I will talk about *optimization for execution time*.
+
+Optimization *itself* takes time and effort. A good optimization is therefore an investment, and a good optimizer makes sure the time invested in optimization will be worth it on the long run.
+
+For effective optimization, one needs to find those parts of the code where the effect of such a refactor is most measurable. To be able to determine which are these parts of your code, I have come up with the concept of **heat control**.
+
+Let's assume, for the sake of this thought experiment, that your code is executed "as-is". All of your lines of code start with an imaginary 0°C of heat associated. Each time the processor visits one line, it gains 1°C of heat. At the end of execution, you will get a **heatmap** of your code.
+ - Some lines like `handle_error();` may remain frozen.
+ - Some, like `write(1, "Welcome to my nice program\n", 27);` may only heat up to 1°C.
+ - Some others like `while (i < 16378192)` become 16378192 degrees hot.
+
+Now heat is not necessarily bad and it's also not necessarily avoidable. But having a heatmap of your code gives you a good idea which parts optimization should focus on. First and foremost you want to focus on the parts that are **super hot**. You can try to aim for a more optimal heat distribution, and also to divert heat away from parts of your code that are *expensive to execute*.
+
+**Loop unrolling**, like shown above, is a good example for the former. Conditions of loops can get super hot, so that will likely make optimization that focuses on them quite effective. In this case, your total heat will end up being reduced as well. An example for the latter is trying to reduce the amount of system calls made. System calls (like `read` or `write`) are super expensive operations. Check the following two implementations of `ft_putstr` to get a good idea of the difference:
+
+```
+//version A
+void ft_putstr(char *str)
+{
+    while (*str)
+    {
+        write(1, str, 1);
+        str++;
+    }
+}
+
+//version B
+void ft_putstr(char *str)
+{
+    write(1, str, ft_strlen(str));
+}
+```
+We don't get *less heat* for version 2, because we will still need to iterate through every character of `str`, but that heat is now diverted to the loop of `strlen`, and `write` is only called once. Remember that a call to `write` is super expensive, and the string might be quite long for what we know.
+
+
 ## TLDR for the lazy
 
 In this last section I will provide a quick summary to those who don't feel like reading through this guide (although I can promise it's really worth it). It's still better to walk away with some information than no information at all, so I will try to summarize the most important points.
