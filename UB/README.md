@@ -60,7 +60,7 @@ Any of this might happen, but these are also just examples. The Standard claims 
 *What exactly* counts as undefined behavior is surprisingly well-defined in the C Standard. There is a specific list around the end of it, which collects all of the examples for UB mentioned in the previous sections, and this list goes on for about 6 pages.
 
 Some arbitrary examples from this list that you might recognize from your C projects:
-- The operand of the unary (see my Footnote #2) `*` operator has an invalid value.
+- The operand of the unary (see my [Footnote #2](#footnote-2-unary-and-binary) `*` operator has an invalid value.
     - this could be a null pointer,
     - an inappropriately aligned address,
     - or the address of an object after the end of its lifetime ("use after free" belongs here).
@@ -161,14 +161,18 @@ It is perfectly reasonable to ask why C has this built-in pitfall that obviously
 
 Well, the short answer is, yes, we could. At least we could *try*. Some other languages do it. But at the same time, it comes with a price.
 
-Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. Let's put it in the Standard that this will result in an error being shown and the end of execution. Better than letting the compiler format our hard drive at least.
+Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. 
+
+Let's put it in the Standard that this will result in an error being shown and the end of execution. You might notice that what we are trying to do here is enforcing what mostly happens *in practice* (Segmentation Fault) also on the *theoretical level* - this is better than giving the compiler a loophole to let it format our hard drive & hoping that a Segfault will be the worst that happens.
+
+So the Standard changed. What now?
 
 Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** They can choose to refuse compilation if they can see the coder violated the rules (let's say you forget a semicolon somewhere), but if they choose to compile, they have to ensure the Standard is followed to the letter.
 
 If the compiler sees that you want to do something like:
 ```
-int *i = NULL;
-*i = 42;
+int *ptr = NULL;
+*ptr = 42;
 ```
 it can refuse to compile it, you correct your code yourself, and the Standard is happy.
 
@@ -180,7 +184,7 @@ void function(int *ptr)
     *ptr = 42;
 }
 ```
-the compiler cannot know if it will *ever* be called from another another function, in another file, with a NULL pointer as argument. Maybe it would not even be apparent from your code, because the pointer only gets there somehow during runtime, from, let's say, getting the wrong input or an unprotected malloc failure.
+the compiler cannot know if it will *ever* be called from another function, in another file, with a NULL pointer as argument. Maybe it would not even be apparent from your code, because the pointer only gets there somehow during runtime, from, let's say, getting the wrong input or an unprotected malloc failure.
 
 This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does, even if this only happens at runtime. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a **NULL check** before `*ptr` that results in program termination if met. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
 
