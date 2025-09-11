@@ -197,13 +197,8 @@ And there are of course things that are way more difficult to implement than the
 In order to know this information beforehand, the compiler would have to implement an infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
 
 <div align="center">
-<picture>
-   <source media="(min-width: 769px)" srcset="./img/img5_mb.png">
-   <source media="(max-width: 768px)" srcset="./img/img5_mb.png">
-   <img alt="Fallback image" src="./img/img5.png">
-</picture>
+<img src="./img/img5_mb.png" width="600">
 </div>
-<br>
 
 Letting these things be undefined by the C Standard makes the life of compiler developers easier, keeps the validity of existing C projects, and it also allows for code that works faster.
 
@@ -271,13 +266,8 @@ By the time of writing the first C standard, different compilers were already in
 The compiler basically thinks of you as a professional who knows what they are doing. The issue is, there is no single man on earth who never makes mistakes.
 
 <div align="center">
-<picture>
-   <source media="(min-width: 769px)" srcset="./img/img6_mb.png">
-   <source media="(max-width: 768px)" srcset="./img/img6_mb.png">
-   <img alt="Fallback image" src="./img/img6.png">
-</picture>
+<img src="./img/img6_mb.png" width="600">
 </div>
-<br>
 
 ## Part IV. UB @ 42
 
