@@ -20,7 +20,7 @@ In order to understand the concept of Undefined Behavior, we have to talk about 
 
 C language was invented in the 1970s by one guy named Dennis Ritchie. As it became very popular there was the need to standardize it - the first such standard was the ANSI C standard in 1989. Today this is the job of the International Organization for Standardization (ISO) who come up with a new C standard every couple of years.
 
-In my presentation I have provided some excerpts to show how the C standard looks like on the inside. You can also find some versions on the internet (LINK) if you are interested, but it's a very dry document to read.
+In my presentation I have provided some excerpts to show how the C standard looks like on the inside. You can also find some versions [on the internet](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) if you are interested, but it's a very dry document to read.
 
 The thing is, one doesn't need to read the C Standard to be decent at writing C language. YouTube tutorials or other learning specific material is probably better suited for this case.
 
@@ -60,7 +60,7 @@ Any of this might happen, but these are also just examples. The Standard claims 
 *What exactly* counts as undefined behavior is surprisingly well-defined in the C Standard. There is a specific list around the end of it, which collects all of the examples for UB mentioned in the previous sections, and this list goes on for about 6 pages.
 
 Some arbitrary examples from this list that you might recognize from your C projects:
-- The operand of the unary `*` operator has an invalid value.
+- The operand of the unary (see my Footnote #2) `*` operator has an invalid value.
     - this could be a null pointer,
     - an inappropriately aligned address,
     - or the address of an object after the end of its lifetime ("use after free" belongs here).
@@ -102,7 +102,7 @@ They are abstract because the inner workings of the machine are not described in
 
 Now here is the super important part: your code itself is nothing but a blueprint, a high-level abstraction defining *"I want all squares to be turned into circles."* It is the compiler's job to, based on this, write some code that will then *actually run* and accomplish that.
 
-The Standard describes this saying what the compiler puts into the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. You can read my [Footnote #2](#footnote-2-observable-behavior) if you want to know what exactly counts as observable behavior, but for a simplified explanation, you can read this excerpt from the Standard:
+The Standard describes this saying what the compiler puts into the binary does not really matter as long as the executable's **observable behavior** remains the same as you intended. You can read my [Footnote #3](#footnote-3-observable-behavior) if you want to know what exactly counts as observable behavior, but for a simplified explanation, you can read this excerpt from the Standard:
 
 > 5.1.2.3.6. At program termination, all data written into ﬁles shall be
 identical to the result that execution of the program according to the
@@ -159,13 +159,20 @@ This image is taken from this very cool [guide](https://pvs-studio.com/en/blog/p
 
 It is perfectly reasonable to ask why C has this built-in pitfall that obviously makes it very dangerous to use. The Standard is written by humans, after all. Since we have an exact list of what counts as undefined - could we not just go through that list and *define everything?*
 
-Well, the short answer is, yes, we could. Some other languages do that. But at the same time, it comes with a price.
+Well, the short answer is, yes, we could. At least we could *try*. Some other languages do it. But at the same time, it comes with a price.
 
 Just as thought experiment, let's try to *define* something that the Standard left as undefined. We can take the most commonly mentioned example - dereferencing a NULL pointer. Let's put it in the Standard that this will result in an error being shown and the end of execution. Better than letting the compiler format our hard drive at least.
 
 Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** They can choose to refuse compilation if they can see the coder violated the rules (let's say you forget a semicolon somewhere), but if they choose to compile, they have to ensure the Standard is followed to the letter.
 
-The compiler, however, cannot know if some function like the one below will *ever* receive a NULL pointer.
+If the compiler sees that you want to do something like:
+```
+int *i = NULL;
+*i = 42;
+```
+it can refuse to compile it, you correct your code yourself, and the Standard is happy.
+
+But there is an issue: you might have heard before that the compiler does not know context between different *translation units*. This normally means it processes each of your `.c` files separately. If one of your files has a
 
 ```
 void function(int *ptr)
@@ -173,10 +180,17 @@ void function(int *ptr)
     *ptr = 42;
 }
 ```
+the compiler cannot know if it will *ever* be called from another another function, in another file, with a NULL pointer as argument. Maybe it would not even be apparent from your code, because the pointer only gets there somehow during runtime, from, let's say, getting the wrong input or an unprotected malloc failure.
 
-This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does, even if this only happens at runtime. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a NULL check before `*ptr`. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
+This cannot be caught at compile-time. Still, if the standard says that dereferencing NULL results in an error, the compiler *has to make sure* that it does, even if this only happens at runtime. There is a straightforward solution to this that some of you might have already thought of: the compiler can add a **NULL check** before `*ptr` that results in program termination if met. *And then add NULL checks everywhere else in all of your C code where pointers are being dereferenced.*
 
-There are of course things that are way more difficult to implement than this. You can check the PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed at the moment counts as UB. Pointers themselves are just addresses though, and right now there is no way in C language to know what exactly lies behind (something I should be able to access or not) before dereferencing itself happens (and by then it's too late). In order to know this information beforehand, the compiler would have to implement a whole infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
+Trying to prevent the use of **uninitialized variables** will add similar overhead. We could introduce a new rule that variables should always be initialized on the same line they are declared, otherwise the declaration is invalid. But this would render almost all existing projects that are written in C uncompilable.
+
+The compiler can instead opt to invisibly set all variables to zero upon declaration. This is not a big change and existing code remains functional (unless it relied on UB to begin with). But this means that variables like `int array[1000]` should also be zeroed out (even though the next move of the coder will likely be filling it with something). `malloc` should also behave as `calloc` from now on (even though, again, choosing `malloc` very likely means "I will fill this with something other than zeroes myself"). It's not hard to see that these extra operations all cost execution time.
+
+And there are of course things that are way more difficult to implement than these. You can check my PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed already is UB at the moment. C++ has a few *smart* ways to tackle this issue, but in C, pointers themselves are just addresses without any additional information, which means there is no way to know what exactly lies behind before using `*`. I won't know if it's something I should be able to access or not, and when I get to know it through `*`, it's already too late, because the invalid access has happened.
+
+In order to know this information beforehand, the compiler would have to implement an infrastructure that stores metadata about all of the pointers in your code, and perform a lookup procedure before each access.
 
 <div align="center">
 <picture>
@@ -187,7 +201,9 @@ There are of course things that are way more difficult to implement than this. Y
 </div>
 <br>
 
-Letting these things be undefined by the C Standard makes the job of compiler developers easier and more straightforward. It also allows for faster code (all of the additional NULL-checks and lookups we mentioned earlier take up time). In fact, the strongest reason for keeping UB is that it makes C to be a very fast language (but not like my example) - by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
+Letting these things be undefined by the C Standard makes the life of compiler developers easier, keeps the validity of existing C projects, and it also allows for code that works faster.
+
+The latter actually plays a big role in having UB in the Standard, but in a less straightfoward way than one might think from the previous examples. You will see in the next chapter how UB helps achieving *super fast code* by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
 
 ### Compiler Optimizations
 
@@ -307,7 +323,21 @@ implementation documents. An example of locale-speciﬁc behavior is whether the
 
 Again, no matter the behavior of choice, it needs to be properly documented.
 
-### Footnote 2. Observable Behavior
+### Footnote 2. Unary and Binary
+
+I added this Footnote because I mentioned the "unary `*` operator" - which is a quote from the Standard, but it feels weird to use it without further explanation.
+
+Making sense of the term is quite straightforward once you know the rule of terminology:
+
+- **binary** operators work with two operands (values or variables) to perfrom an operation.
+    - for example, the binary `+` can be used like `i + j` - it adds to values.
+- **unary** operators perform operations on a single operand.
+    - for example, the unary `+` can be used to do `++i` - to increment a single value.
+
+Based on this you can probably guess that "binary `*`" perfoms multiplication (`i * j`), and "unary `*`" is the dereference operator (`*i`). The standard describes this in a fancy way: it says the unary `*` operator *denotes indirection*.
+
+
+### Footnote 3. Observable Behavior
 
 What counts as "observable behavior" is a bit more complex than how I presented above. For the most part, it is indeed about files your program will modify (be that the terminal or a text file or anything else), because this is something you can observe from the outside.
 
@@ -340,7 +370,7 @@ the loop has to be left completely intact. Imagine there is an external device t
 
 While often used simply to prevent optimizations done to specific parts of the code, accesses to `volatile` objects count as observable because another outside source is supposedly communicating with your program through this means.
 
-### Footnote 3. Heat Control
+### Footnote 4. Heat Control
 
 This footnote is about what makes an optimization effective.
 
