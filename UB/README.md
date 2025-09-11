@@ -287,9 +287,16 @@ The most important of these is to **spread awareness of UB on campus**. Make it 
 
 A good way to check if your code has UB is to **compile it with optimization flags**. This is because a lot of hidden pitfalls of UB are only taken advantage of by the compiler when aggressive optimizations are enabled. This is not a foolproof way to catch issues, but one thing is for sure: a code that has no UB has to work the same compiled with `-O3` as without.
 
-Static code analyzers like `scan-build` are also able to detect more obvious cases that might be visible at compile-time. For runtime checking, you can use the `-fsanitize=undefined` flag at compilation and let UBSan look for issues. This will report any UB it encounters at runtime, but just like before, not seeing errors does not automatically mean your code is free from issues. There could be a problem in your code that is only triggered in some very specific cases, or already removed by the compiler during optimization. //would have to explain why is is an issue... holy hell this topic is hard
+Static code analyzers like `scan-build` are also able to detect more obvious cases that might be visible at compile-time. For runtime checking, you can use the `-fsanitize=undefined` flag at compilation and let UBSan look for issues. This will report any UB it encounters at runtime, but just like before, not seeing errors does not automatically mean your code is free from issues. There could be a problem in your code that is only triggered in some very specific cases. It also won't notice any UB that might already be replaced with weird things by the compiler.
 
-//discussion about 42 subjects
+Another thing that has been a discussion on my campus is how UB should be treated *in practice* during an evaluation. There is an infamous recurring line in 42 subjects that some of you probably know:
+> Your functions should not quit unexpectedly (segmentation fault, bus error, double free, etc.) **except for undefined behavior**.
+
+A common understanding of this line (at least on my campus) is that NULL checks placed in `Libft` functions are not necessary (the function should have an option to segfault if it receives a NULL pointer).
+
+Since Moulinette does not let us use assertions and the other option would be to silence the error happening (by simply returning from the function), I also share this opinion. This **does not mean however**, that if any such function used later in a bigger project (like cube) actually *does* receive a NULL (either because of a missing malloc protection or other mistake) and segfaults, that the project is still passable. Even thoguh, very strictly speaking, cube eventually died because of UB that happened at runtime, and one could understand the subject as allowing this.
+
+At the same time, I really do not know what kind of segfault or double free the subject is thinking of that *does not come from* undefined behavior.
 
 ## Useful links for further reading
 
