@@ -208,27 +208,29 @@ The latter actually plays a big role in having UB in the Standard, but in a less
 
 Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. In the Standard, however, signed integer overflow is listed as undefined: this means the Standard claims that no one quite knows what will happen if we add 1 to `INT_MAX`.
 
-What does this mean to the compiler in practice?
+It makes sense in a way, because the Standard talks about an abtract machine we can't know the architecture of. But the main reason behind keeping it undefined is not this, it's much **darker and scarier** than that.
 
-You can imagine the Standard as a book of *all possible things* you can encounter in C language. How the compiler uses it can be compared to simplified list like this:
+If this sounds interesting, let's inspect what this rule means to the compiler in practice.
+
+One can imagine the Standard as a book of *all possible things* you can encounter in C language. How the compiler uses it can be compared to simplified list like this:
 ```
 if X happens, do A
 if Y happens, do B
 ...
 if Z happens, do <anything>
 ```
-You might have guessed that `Z` represents UB in the above list. The compiler needs to watch out for `X`, because it has to translate it `A` way. It also needs to be on the lookout for `Y`, because that will be translated to `B`. But it does not watch out for `Z` happening, because the existence of `Z` is completely irrelevant to what should be done. **It can pretend as if it's not in the list of possible things at all.**
+You might have guessed that `Z` represents UB in the above list. The compiler needs to watch out for `X`, because it has to translate it `A` way. It also needs to be on the lookout for `Y`, because that will be translated to `B`. But it does not need to watch out for `Z` happening, because the **existence of `Z` is completely irrelevant** to what should be done. **It can pretend as if it's not in the list of possible things at all.**
 
 And this exactly what the compiler will do. It will act exactly as if `Z` can never happen.
 
 I wrote this twice because to me it's the most mind-bending part of how C is processed, but at the same time it's super important to understand. The compiler sees your code through a specific mindset I call **compiler-think**: this says,
 > if `Z` is undefined, **assume `Z` is impossible.**
 
-In other words, coming back to our example in the beginning, after 2147483647 comes 2147483648 and we can count further until infinity. But no matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
+In other words, coming back to our example in the beginning: if integer overflow is impossible, after 2147483647 comes 2147483648 and we can count further until infinity. But no matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
 
 Only in computing it can happen that `x + 1` ends up being smaller than `x`, this would be impossible in math. Making the compiler be aware of this would mean we are not allowing it to have any assumptions about the result of arithmetic operations - but assumptions (like the one that `x + 1` will be bigger than `x`) are necessary to perform optimizations, like simplification of an expression.
 
-But this also means that calling a function like this:
+Not that this assumption has the side effect that calling a function like this:
 
 ```
 bool detect_overflow(int x)
@@ -239,11 +241,15 @@ bool detect_overflow(int x)
 ```
 can be collapsed into `false` (and thus lose its purpose) with optimizations enabled.
 
-There is another 
+Another instance at optimization where doing "pure math" instead of the CS version comes in handy is **loop unrolling**. This technique is super common and one of the most powerful tools of the compiler when it comes to actual execution time spared.
 
-One super common optimization technique the compiler uses to make your code faster is *loop unrolling*. If you have a loop that does 1 operation for `n` iterations, the compiler transforms it into another that does, let's say, 4 operations for `n / 4` iterations instead (you for sure need to do the leftover separately ). I made a very simple illustration of this in my presentation:
+If you have a loop that does 1 operation for `n` iterations, it can be transformed into another that does, let's say, 4 operations for `n / 4` iterations instead (you for sure need to do the leftover separately ). I made a very simple illustration of this in my presentation:
 
-[intert picture here]
+<div align="center">
+<img src="./img/img9.png" width="600">
+</div>
+
+<br>See my Footnote #4 if you want to better understand why things like this make your code more effective.
 
 Now let's say we are dealing with a loop like this:
 
@@ -255,7 +261,7 @@ while (y <= max_y)
 }
 ```
 
-Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `max_y` is, we might deal with an infinite loop here (in case `max_y` is 2147483647 and `y` overflows). But it doesn't make sense to unroll a loop that's infinite - it takes time and the effectiveness of such operation is zero (see my Footnote #4 about what makes an optimization effective).
+Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `max_y` is, we might deal with an infinite loop here (in case `max_y` is 2147483647 and `y` overflows). But it doesn't make sense to unroll a loop that's infinite - the effect of such "optimization" in practice is zero, so all the effort spent on it is net loss.
 
 If overflow is *impossible* however, then we don't have to deal with doubts like this.
 
@@ -276,6 +282,10 @@ result[0] = '\0';
 If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen no matter what. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
 
 I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a coder, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
+
+<div align="center">
+<img src="./img/img10.png" width="500">
+</div>
 
 ### Historical burden
 
