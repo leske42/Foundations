@@ -204,51 +204,80 @@ Letting these things be undefined by the C Standard makes the life of compiler d
 
 The latter actually plays a big role in having UB in the Standard, but in a less straightfoward way than one might think from the previous examples. You will see in the next chapter how UB helps achieving *super fast code* by enabling the compiler to **make some assumptions necessary for aggressive optimization**.
 
-### Compiler Optimizations
+### The Weird Way Compilers See the World
 
 Do you remember when we mentioned `INT_MAX` on the hardware level always overflows into `INT_MIN`? Everybody who has done `Rush 00`in Piscine probably has seen this happen with their own eyes too. In the Standard, however, signed integer overflow is listed as undefined: this means the Standard claims that no one quite knows what will happen if we add 1 to `INT_MAX`.
 
-And the reason for this is not that it might happen different on another architecture. The reason, and this might sound weird, is to let the compiler think: *signed integer overflow is impossible*. In other words, after 2147483647 comes 2147483648 and we can count further until infinity.
+What does this mean to the compiler in practice?
 
-No matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
+You can imagine the Standard as a book of *all possible things* you can encounter in C language. How the compiler uses it can be compared to simplified list like this:
+```
+if X happens, do A
+if Y happens, do B
+...
+if Z happens, do <anything>
+```
+You might have guessed that `Z` represents UB in the above list. The compiler needs to watch out for `X`, because it has to translate it `A` way. It also needs to be on the lookout for `Y`, because that will be translated to `B`. But it does not watch out for `Z` happening, because the existence of `Z` is completely irrelevant to what should be done. **It can pretend as if it's not in the list of possible things at all.**
 
-In order to be able to optimize your code effectively, the compiler adopts the following mindset: "if it isn't defined what will happen on x, **I will assume that x will never happen**."
+And this exactly what the compiler will do. It will act exactly as if `Z` can never happen.
 
-Logically this is sound. In care you are wrong and thing you assumed is impossible happens - whatever the result, you are good (since everything is allowed by the Standard). I will also show you why this mindset is super powerful in practice.
+I wrote this twice because to me it's the most mind-bending part of how C is processed, but at the same time it's super important to understand. The compiler sees your code through a specific mindset I call **compiler-think**: this says,
+> if `Z` is undefined, **assume `Z` is impossible.**
 
-One super common optimization technique the compiler uses to make your code faster is *loop unrolling*. If you have a loop that does 1 operation for N iterations, the compiler transforms it into another that does, let's say, 4 operations for N/4 iterations instead (you for sure need to do the leftover separately ).
+In other words, coming back to our example in the beginning, after 2147483647 comes 2147483648 and we can count further until infinity. But no matter the architecture, no computer has registers that are able to count until infinity. So what is the point of this approach?
+
+Only in computing it can happen that `x + 1` ends up being smaller than `x`, this would be impossible in math. Making the compiler be aware of this would mean we are not allowing it to have any assumptions about the result of arithmetic operations - but assumptions (like the one that `x + 1` will be bigger than `x`) are necessary to perform optimizations, like simplification of an expression.
+
+But this also means that calling a function like this:
 
 ```
-while (i <= N)
+bool detect_overflow(int x)
 {
-    arr[i] += val;
-    i++;
+    int y = x + 1;
+    return (y < x);
+}
+```
+can be collapsed into `false` (and thus lose its purpose) with optimizations enabled.
+
+There is another 
+
+One super common optimization technique the compiler uses to make your code faster is *loop unrolling*. If you have a loop that does 1 operation for `n` iterations, the compiler transforms it into another that does, let's say, 4 operations for `n / 4` iterations instead (you for sure need to do the leftover separately ). I made a very simple illustration of this in my presentation:
+
+[intert picture here]
+
+Now let's say we are dealing with a loop like this:
+
+```
+while (y <= max_y)
+{
+    //do some stuff here
+    y++;
 }
 ```
 
-Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `N` is, we might deal with an infinite loop here (in case `N` is 2147483647 and `i` overflows). But it only makes sense to unroll a loop that isn't infinite. If we could know *for sure* this loop won't overflow, we could turn it into something like
+Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `max_y` is, we might deal with an infinite loop here (in case `max_y` is 2147483647 and `y` overflows). But it doesn't make sense to unroll a loop that's infinite - it takes time and the effectiveness of such operation is zero (see my Footnote #4 about what makes an optimization effective).
 
+If overflow is *impossible* however, then we don't have to deal with doubts like this.
+
+But it's not only integer overflow we are talking about here. This way of thinking applies to all UB, for example, the compiler will also assume that **dereferencing a NULL pointer is impossible**. In practice this means that in case it seems `*ptr` or `ptr[i]` anywhere in your code, it can work with the assumption that `ptr` is *not* NULL.
+
+Doesn't seem scary yet? Well I will tell you another assumption compilers like to work with: *all functions will return*. There are only a very few set of specific functions (like `abort` or `exit`) where it knows this is not the case. Combine these two assumptions and you get code like:
 ```
-while (i + 3 <= N)
-{
-    arr[i] += val;
-    arr[i + 1] += val;
-    arr[i + 2] += val;
-    arr[i + 3] += val;
-    i += 4;
-}
-while (i <= N)
-{
-    arr[i] += val;
-    i++;
-}
+char *result = malloc(result_size);
+if (!result)
+    ft_exit(data_to_free);
+result[0] = '\0';
 ```
+optimized into
+```
+char *result = malloc(result_size);
+result[0] = '\0';
+```
+If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen no matter what. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
 
-<small>See my footnote 5 for why this makes your program faster.</small>
+I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a coder, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
 
-And well, if signed int is impossible to overflow, we achieve just that. So, for this purpose, yes, the compiler will assume that 2147483648 comes after 2147483647, we can count like this till infinity and beyond.
-
-### Historical reasons
+### Historical burden
 
 Finally, there is one more reason for why we have UB in C language, and it's way less exciting than the previous ones (but not in any way less important). By the time the C standardization began, the language was already widely in use (this is also true for C++ for the matter). There were already C compilers in use, and they already behaved a specific way, and the people who had to come up with the Standard could not declare practices that were already widely in use "illegitimate".
 
@@ -260,7 +289,7 @@ By the time of writing the first C standard, different compilers were already in
 - Instead, the standard incorporated already existing behaviors
 - If different compilers handled a case differently → rather left UB
 
-### Final thoughts
+### So: can architecture *define* the undefined?
 
 //would be nice to write here about the tradeoff - as long as you write flawless code, the compiler can very efficiently work together with you to optimize it, and you will end up with a very fast executable. But as soon as you make mistakes, the compiler ends up working *against you* instead of with you.
 The compiler basically thinks of you as a professional who knows what they are doing. The issue is, there is no single man on earth who never makes mistakes.
@@ -427,3 +456,4 @@ In this last section I will provide a quick summary to those who don't feel like
 Please go back and read the full guide if this sounds scary enough.
 
 May the gods of cursed C code have mercy on our soul.
+
