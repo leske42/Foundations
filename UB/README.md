@@ -60,7 +60,7 @@ Any of this might happen, but these are also just examples. The Standard claims 
 *What exactly* counts as undefined behavior is surprisingly well-defined in the C Standard. There is a specific list around the end of it, which collects all of the examples for UB mentioned in the previous sections, and this list goes on for about 6 pages.
 
 Some arbitrary examples from this list that you might recognize from your C projects:
-- The operand of the unary (see my [Footnote #2](#footnote-2-unary-and-binary) `*` operator has an invalid value.
+- The operand of the unary (see my [Footnote #2](#footnote-2-unary-and-binary)) `*` operator has an invalid value.
     - this could be a null pointer,
     - an inappropriately aligned address,
     - or the address of an object after the end of its lifetime ("use after free" belongs here).
@@ -249,7 +249,7 @@ If you have a loop that does 1 operation for `n` iterations, it can be transform
 <img src="./img/img9.png" width="600">
 </div>
 
-<br>See my Footnote #4 if you want to better understand why things like this make your code more effective.
+<br>See my [Footnote #4](#footnote-4-heat-control) if you want to better understand why things like this make your code more effective.
 
 Now let's say we are dealing with a loop like this:
 
@@ -279,7 +279,7 @@ optimized into
 char *result = malloc(result_size);
 result[0] = '\0';
 ```
-If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen no matter what. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
+If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen on all possible branches of execution. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
 
 I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a coder, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
 
