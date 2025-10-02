@@ -304,15 +304,11 @@ I know it looks hard to process at first, and honestly speaking, it made me lose
 
 ### Historical burden
 
-Finally, there is one more reason for why we have UB in C language, and it's way less exciting than the previous ones (but not in any way less important). By the time the C standardization began, the language was already widely in use (this is also true for C++ for the matter). There were already C compilers in use, and they already behaved a specific way, and the people who had to come up with the Standard could not declare practices that were already widely in use "illegitimate".
+There’s also a much less exciting (but equally important) reason why UB exists in C: history. By the time the standardization of C began, the language was already quite popular. There were already different C compilers in use, and important projects were written assuming specific compiler behavior. The people working on the Standard could not declare practices that were widely in use "illegitimate".
 
-Other languages have been designed with memory-safety in mind, a lot of the times inspired by a willingness to learn from C's mistakes. It is much easier to build something like that from the ground up, than to change a language's inner workings when they are already foundational part of big projects.
+Instead, they chose to incorporate already existing behavior into the rules, and in the case different compilers handled a case differently, it was rather left undefined (or up to implementation - see my [Footnote #1](#footnote-1-the-less-clearly-defined)).
 
-By the time of writing the first C standard, different compilers were already in standard use.
-- Certain important projects were written assuming specific compiler behavior
-- Forcing them to change compiler would have required serious refactoring
-- Instead, the standard incorporated already existing behaviors
-- If different compilers handled a case differently → rather left UB
+Other languages have been designed with much clearer rules of what is allowed and memory-safety in mind, oftentimes inspired by a willingness to learn from C's mistakes. It is much easier to build something like that from the ground up, than to change a language's inner workings when it's already in daily use.
 
 ### So: can architecture *define* the undefined?
 
