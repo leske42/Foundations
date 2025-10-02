@@ -14,7 +14,9 @@ What I said during my workshop is that instead of C programmers, 42 in this sens
 
 My goal with the workshop (and providing this transcript) is for students to have some basic understanding of what UB is, so this can be discussed during evaluations, online on the Slack or Discord, etc. It is the responsibility of all students who listen to or read this to turn this into a discussion and further spread the knowledge.
 
-## Part I - The C Standard
+## Part I - Reading the C Standard for Fun, Pleasure, and Profit
+
+(the title is a reference to Peter van der Linden's nice [book](https://progforperf.github.io/Expert_C_Programming.pdf) on C language)
 
 In order to understand the concept of Undefined Behavior, we have to talk about **the C Standard** first.
 
