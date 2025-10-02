@@ -312,8 +312,19 @@ Other languages have been designed with much clearer rules of what is allowed an
 
 ### So: can architecture *define* the undefined?
 
-//would be nice to write here about the tradeoff - as long as you write flawless code, the compiler can very efficiently work together with you to optimize it, and you will end up with a very fast executable. But as soon as you make mistakes, the compiler ends up working *against you* instead of with you.
-The compiler basically thinks of you as a professional who knows what they are doing. The issue is, there is no single man on earth who never makes mistakes.
+It seems like we can finally go back to the question about Segmentation Fault: *is it* okay to rely on UB just because your architecture seems to guarantee a certain behavior?
+
+The main issue, as you have seen it, that the *intended behavior* of your code might not survive the translation process and might not reach your architecture.
+
+If you *did* get the behavior you want - good for you. The tradeoff is that your code just became *horribly unportable*. If you want recreatable results, you will have to document every detail: the compiler (name, version, the flags you used), the architecture, and even like that the behavior of your executable will only remain consistent if you never change anything in your code. Even the tiniest changes could break things in completely unexpected ways.
+
+So, it’s possible, but it’s not practical, and it’s definitely not the point of UB.
+
+UB in the end is not meant to be the bad guy. It's there to *help the compiler help you* in making a super fast and efficient executable. As long as you write flawless code, the compiler can very efficiently work together with you to optimize it. But as soon as you make mistakes, it will end up working *against you* instead of with you.
+
+In short, C compilers think of you as a professional who, like a machine, always knows what they are doing.
+
+The issue is, there is no single man on earth who never makes mistakes.
 
 <div align="center">
 <img src="./img/img6_mb.png" width="600">
