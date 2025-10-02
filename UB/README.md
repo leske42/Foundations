@@ -261,9 +261,24 @@ while (y <= max_y)
 }
 ```
 
-Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `max_y` is, we might deal with an infinite loop here (in case `max_y` is 2147483647 and `y` overflows). But it doesn't make sense to unroll a loop that's infinite - the effect of such "optimization" in practice is zero, so all the effort spent on it is net loss.
+Those of you who did `Rush 00` know what is possibly wrong with this loop. If we don't quite know what `max_y` is, we might deal with an infinite loop here (in case `max_y` is 2147483647 and `y` overflows).
 
-If overflow is *impossible* however, then we don't have to deal with doubts like this.
+But a condition like `y < max_y` is unbreakable even with `INT_MAX`, right?
+
+Let's say the compiler decides to perform 4 operations in one iteration of the loop to make it faster. Now the loop looks like:
+
+```
+while (y + 5 < max_y)
+{
+    //do 4 stuff here
+    y += 4;
+}
+```
+At some point, `y` will become 2147483644, `y + 5` in the condition check will result in -2, we enter the loop, and at `y += 4`, `y` will overflow to -1.
+
+Optimization is not supposed to change the *observable* behavior of the program, but unknowingly, we just made a loop run again that would have stopped otherwise.
+
+Since the compiler has no way to know what `max_y` is and it's strictly forbidden from changing the intended behavior of your machine, the only choice it has left is to not perform any optimizations. If overflow is *impossible* however, then we don't have to deal with doubts like this.
 
 But it's not only integer overflow we are talking about here. This way of thinking applies to all UB, for example, the compiler will also assume that **dereferencing a NULL pointer is impossible**. In practice this means that in case it seems `*ptr` or `ptr[i]` anywhere in your code, it can work with the assumption that `ptr` is *not* NULL.
 
