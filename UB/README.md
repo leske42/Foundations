@@ -1,8 +1,34 @@
+<h1 align="center">
+A Hitchhiker's Guide to Undefined Behavior
+</h1>
+
 This is a written excerpt of the workshop I did for the 42 Vienna students on the 25th of June, 2025.
 
 You have found very important information. Please read further.
 
-## Why this topic?
+## Table of Contents
+
+- Introduction. Why this topic?
+- Part I. Reading the C Standard for Fun, Pleasure, and Profit
+    - The concept of "behavior"
+    -  Common examples
+- Part II. Is UB the same as Segmentation Fault?
+    - The Abstract Machine
+    - How is this all relevant to UB?
+- Part III. Why does UB exist?
+    - The Weird Way Compilers See the World
+    - Historical burden
+    - So: can architecture *define* the undefined?
+- Part IV. UB @ 42
+- Useful links for further reading
+- Footnotes
+    - Footnote 1. The Less Clearly Defined
+    - Footnote 2. Unary and Binary
+    - Footnote 3. Observable Behavior
+    - Footnote 4. Heat Control
+- TLDR for the lazy
+
+## Introduction. Why this topic?
 
 This is a topic none of the projects we do at 42 deal with. You can complete all of your Common Core without ever reading up on it (you will likely encounter it in practice, though it will likely remain unnoticed).
 
@@ -14,7 +40,7 @@ What I said during my workshop is that instead of C programmers, 42 in this sens
 
 My goal with the workshop (and providing this transcript) is for students to have some basic understanding of what UB is, so this can be discussed during evaluations, online on the Slack or Discord, etc. It is the responsibility of all students who listen to or read this to turn this into a discussion and further spread the knowledge.
 
-## Part I - Reading the C Standard for Fun, Pleasure, and Profit
+## Part I. Reading the C Standard for Fun, Pleasure, and Profit
 
 (the title is a reference to Peter van der Linden's nice [book](https://progforperf.github.io/Expert_C_Programming.pdf) on C language)
 
@@ -75,7 +101,7 @@ You can find more examples in my presentation (or even more in the standard itse
 
 So, the answer to *what is Undefined Behavior?* is quite simple: UB is everything in your code, the behavior of which is either not defined in the standard at all, or is *defined explicitly as undefined.*
 
-## Part II - Is UB the same as Segmentation Fault?
+## Part II. Is UB the same as Segmentation Fault?
 
 I purposefully began the second part of my presentation with a question that seems very stupid at first glance. I have noticed that UB in the context of 42 curriculum (especially around Libft and the "NULL protection debate") is often discussed as "something in your code that **results in** Segmentation Fault". If you look back at the **common examples** list is just presented, you can indeed notice that if you put these in your code in practice, most of it will likely produce a segfault. But none of us ever got segfault on integer overflow or omitting a newline from the end of a file, so the answer to the question in the title seems quite straightforward.
 
