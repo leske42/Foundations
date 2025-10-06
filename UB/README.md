@@ -6,26 +6,37 @@ This is a written excerpt of the workshop I did for the 42 Vienna students on th
 
 You have found very important information. Please read further.
 
+Below you will see my big ass table of content. Yes this guide is very long and quite detailed, but you will *not* regret reading it.
+
+In cause you don't belive me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny knowledge on this topic is better than just leaving.
+
 ## Table of Contents
 
 - Introduction. Why this topic?
+
 - Part I. Reading the C Standard for Fun, Pleasure, and Profit
     - The concept of "behavior"
     -  Common examples
+
 - Part II. Is UB the same as Segmentation Fault?
     - The Abstract Machine
     - How is this all relevant to UB?
+
 - Part III. Why does UB exist?
     - The Weird Way Compilers See the World
     - Historical burden
     - So: can architecture *define* the undefined?
+
 - Part IV. UB @ 42
+
 - Useful links for further reading
+
 - Footnotes
     - Footnote 1. The Less Clearly Defined
     - Footnote 2. Unary and Binary
     - Footnote 3. Observable Behavior
     - Footnote 4. Heat Control
+
 - TLDR for the lazy
 
 ## Introduction. Why this topic?
