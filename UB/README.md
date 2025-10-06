@@ -21,11 +21,12 @@ In case you don't belive me for some reason, I have added a [TLDR section](#tldr
 - [Part II. Is UB the same as Segmentation Fault?](#part-ii-is-ub-the-same-as-segmentation-fault)
     - [The Abstract Machine](#the-abstract-machine)
     - [How is this all relevant to UB?](#how-is-this-all-relevant-to-ub)
+    - [So: can architecture *define* the undefined?](#so-can-architecture-define-the-undefined)
 
 - [Part III. Why does UB exist?](#part-iii-why-does-ub-exist)
     - [The Weird Way Compilers See the World](#the-weird-way-compilers-see-the-world)
     - [Historical burden](#historical-burden)
-    - [So: can architecture *define* the undefined?](#so-can-architecture-define-the-undefined)
+    - [Trust me like your compiler trusts you](#trust-me-like-your-compiler-trusts-you)
 
 - [Part IV. UB @ 42](#part-iv-ub--42)
 
@@ -85,6 +86,10 @@ It is described in the standard as the following:
 
 For example, if you take our previous code, and add `i /= 0;`, instead of saying this leads to an error (like floating-point exception), the Standard leaves it completely open-ended what will happen.
 
+Now, you might think - who cares what the Standard says, if floating-point exception *is* what happens anyway? We will talk about this in detail in the next chapter.
+
+For now, let's just read the official standpoint:
+
 > Possible undefined behavior ranges from **ignoring the situation
 completely with unpredictable results**, to behaving during translation or
 program execution in a documented manner characteristic of the
@@ -92,7 +97,7 @@ environment (with or without the issuance of a diagnostic message), to
 **terminating a translation or execution** (with the issuance of a diagnostic
 message).
 
-Any of this might happen, but these are also just examples. The Standard claims we cannot know the consequences.
+Any of this might happen, but these are also just examples. *The Standard claims we cannot know the consequences.*
 
 ### Common examples
 
@@ -114,7 +119,7 @@ So, the answer to *what is Undefined Behavior?* is quite simple: UB is everythin
 
 ## Part II. Is UB the same as Segmentation Fault?
 
-I purposefully began the second part of my presentation with a question that seems very stupid at first glance. I have noticed that UB in the context of 42 curriculum (especially around Libft and the "NULL protection debate") is often discussed as "something in your code that **results in** Segmentation Fault". If you look back at the **common examples** list is just presented, you can indeed notice that if you put these in your code in practice, most of it will likely produce a segfault. But none of us ever got segfault on integer overflow or omitting a newline from the end of a file, so the answer to the question in the title seems quite straightforward.
+I purposefully began the second part of my presentation with a question that seems very stupid at first glance. I have noticed that UB in the context of 42 curriculum (especially around Libft and the "NULL protection debate") is often discussed as "something in your code that **results in** Segmentation Fault". If you look back at the **common examples** list is just presented, you can indeed notice that if you put these in your code *in practice*, some of them will likely produce a segfault. But none of us ever got segfault on integer overflow or omitting a newline from the end of a file, so the answer to the question seems quite straightforward.
 
 But I believe this question, when asked by someone, usually has a deeper meaning behind it. And I think the real question being asked here is:
 
@@ -194,6 +199,22 @@ And remember that there is a *6 page long* list in the C standard about all the 
 This image is taken from this very cool [guide](https://pvs-studio.com/en/blog/posts/cpp/1215/) to Undefined Behavior by Dmitry Sviridkin and Andrey Karpov
 </div>
 
+### So: can architecture *define* the undefined?
+
+It seems like we can finally go back to the question about Segmentation Fault: *is it* okay to rely on UB just because your architecture seems to guarantee a certain behavior?
+
+The main issue, as you have seen it, is that the *intended behavior* of your code **might not survive the translation process** and might not reach your architecture.
+
+Sometimes I can hear people argue in a way: *as long as I don't have optimizations enabled, I can count on UB translated in a specific way*. However, I really disagree with this way of thinking for multiple reasons.
+
+First of all, you can not count on people only ever compiling your code with `O0` (if the terms like `O3` or `O0` sound alien to you, [here](https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html) you can read more about these options). But what bothers me even more, and what people like to overlook, is that *being able to choose* the level of optimization (even the fact that these levels exist) is a compiler feature, not a language feature. Common compilers happen to delegate the choice if optimization happens or not to you as the end user, but the Standard doesn't mandate them. If you don't play by the rules, there is simply nothing guaranteeing that what *you* want will happen.
+
+If you tried it in practice, and *did* get the behavior you want - good for you. The tradeoff is that your code just became *very unportable*.
+
+If you want recreatable results with UB in your code, you will have to document details like the compiler you used, including name, version and all options (like optimization level), or the architecture you compiled for. Even like that, the behavior of your executable will only remain consistent as long as you don't change your code. Sometimes the tiniest changes could break things in completely unexpected ways.
+
+So, yes, it’s possible, but it’s not practical, and it’s definitely not the point of UB.
+
 ## Part III. Why does UB exist?
 
 It is perfectly reasonable to ask why C has this built-in pitfall that obviously makes it very dangerous to use. The Standard is written by humans, after all. Since we have an exact list of what counts as undefined - could we not just go through that list and *define everything?*
@@ -206,7 +227,7 @@ Let's put it in the Standard that this will result in an error being shown and t
 
 So the Standard changed. What now?
 
-Remember from the beginning that **respecting the Standard is not the responsibility of the coder, it is always the responsibility of the compiler.** They can choose to refuse compilation if they can see the coder violated the rules (let's say you forget a semicolon somewhere), but if they choose to compile, they have to ensure the Standard is followed to the letter.
+Remember from the beginning that **respecting the Standard is not the responsibility of the C programmer, it is always the responsibility of the compiler.** They can choose to refuse compilation if they can see the C programmer violated the rules (let's say you forget a semicolon somewhere), but if they choose to compile, they have to ensure the Standard is followed to the letter.
 
 If the compiler sees that you want to do something like:
 ```
@@ -229,7 +250,7 @@ This cannot be caught at compile-time. Still, if the standard says that derefere
 
 Trying to prevent the use of **uninitialized variables** will add similar overhead. We could introduce a new rule that variables should always be initialized on the same line they are declared, otherwise the declaration is invalid. But this would render almost all existing projects that are written in C uncompilable.
 
-The compiler can instead opt to invisibly set all variables to zero upon declaration. This is not a big change and existing code remains functional (unless it relied on UB to begin with). But this means that variables like `int array[1000]` should also be zeroed out (even though the next move of the coder will likely be filling it with something). `malloc` should also behave as `calloc` from now on (even though, again, choosing `malloc` very likely means "I will fill this with something other than zeroes myself"). It's not hard to see that these extra operations all cost execution time.
+The compiler can instead opt to invisibly set all variables to zero upon declaration. This is not a big change and existing code remains functional (unless it relied on UB to begin with). But this means that variables like `int array[1000]` should also be zeroed out (even though the next move of the C programmer will likely be filling it with something). `malloc` should also behave as `calloc` from now on (even though, again, choosing `malloc` very likely means "I will fill this with something other than zeroes myself"). It's not hard to see that these extra operations all cost execution time.
 
 And there are of course things that are way more difficult to implement than these. You can check my PDF for more examples, but a good example is *trying to prevent double freeing*. Accessing something that has been freed already is UB at the moment. C++ has a few *smart* ways to tackle this issue, but in C, pointers themselves are just addresses without any additional information, which means there is no way to know what exactly lies behind before using `*`. I won't know if it's something I should be able to access or not, and when I get to know it through `*`, it's already too late, because the invalid access has happened.
 
@@ -312,16 +333,17 @@ while (y + 5 < max_y)
     //do 4 stuff here
     y += 4;
 }
+//handle leftover
 ```
 At some point, `y` will become 2147483644, `y + 5` in the condition check will result in -2, we enter the loop, and at `y += 4`, `y` will overflow to -1.
 
 Optimization is not supposed to change the *observable* behavior of the program, but unknowingly, we just made a loop run again that would have stopped otherwise.
 
-Since the compiler has no way to know what `max_y` is and it's strictly forbidden from changing the intended behavior of your machine, the only choice it has left is to not perform any optimizations. If overflow is *impossible* however, then we don't have to deal with doubts like this.
+Since the compiler has no way to know what `max_y` is and it's strictly forbidden from changing the intended behavior of your machine, the only choice it has left is to *not perform any optimizations*. If overflow is *impossible* however, then we don't have to deal with doubts like this.
 
 But it's not only integer overflow we are talking about here. This way of thinking applies to all UB, for example, the compiler will also assume that **dereferencing a NULL pointer is impossible**. In practice this means that in case it seems `*ptr` or `ptr[i]` anywhere in your code, it can work with the assumption that `ptr` is *not* NULL.
 
-Doesn't seem scary yet? Well I will tell you another assumption compilers like to work with: *all functions will return*. There are only a very few set of specific functions (like `abort` or `exit`) where it knows this is not the case. Combine these two assumptions and you get code like:
+To understand why this can have horrible consequences, I will tell you another assumption compilers like to work with: *all functions will return*. There are only a very few set of specific functions (like `abort` or `exit`) where it knows this is not the case. Combine these two assumptions and you get code like:
 ```
 char *result = malloc(result_size);
 if (!result)
@@ -335,7 +357,7 @@ result[0] = '\0';
 ```
 If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen on all possible branches of execution. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
 
-I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a coder, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
+I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a C programmer, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
 
 <div align="center">
 <img src="./img/img10.png" width="500">
@@ -349,19 +371,11 @@ Instead, they chose to incorporate already existing behavior into the rules, and
 
 Other languages have been designed with much clearer rules of what is allowed and memory-safety in mind, oftentimes inspired by a willingness to learn from C's mistakes. It is much easier to build something like that from the ground up, than to change a language's inner workings when it's already in daily use.
 
-### So: can architecture *define* the undefined?
-
-It seems like we can finally go back to the question about Segmentation Fault: *is it* okay to rely on UB just because your architecture seems to guarantee a certain behavior?
-
-The main issue, as you have seen it, that the *intended behavior* of your code might not survive the translation process and might not reach your architecture.
-
-If you *did* get the behavior you want - good for you. The tradeoff is that your code just became *horribly unportable*. If you want recreatable results, you will have to document every detail: the compiler (name, version, the flags you used), the architecture, and even like that the behavior of your executable will only remain consistent if you never change anything in your code. Even the tiniest changes could break things in completely unexpected ways.
-
-So, it’s possible, but it’s not practical, and it’s definitely not the point of UB.
+### Trust me like your compiler trusts you
 
 UB in the end is not meant to be the bad guy. It's there to *help the compiler help you* in making a super fast and efficient executable. As long as you write flawless code, the compiler can very efficiently work together with you to optimize it. But as soon as you make mistakes, it will end up working *against you* instead of with you.
 
-In short, C compilers think of you as a professional who, like a machine, always knows what they are doing.
+C compilers think of you as a professional who, like a machine, always knows what they are doing.
 
 The issue is, there is no single man on earth who never makes mistakes.
 
