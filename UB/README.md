@@ -6,38 +6,38 @@ This is a written excerpt of the workshop I did for the 42 Vienna students on th
 
 You have found very important information. Please read further.
 
-Below you will see my big ass table of content. Yes this guide is very long and quite detailed, but you will *not* regret reading it.
+Below you will see my big ass table of contents. Yes this guide is very long and quite detailed, but you will *not* regret reading it.
 
-In cause you don't belive me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny knowledge on this topic is better than just leaving.
+In case you don't belive me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny bit of knowledge on this topic is better than just leaving.
 
 ## Table of Contents
 
-- Introduction. Why this topic?
+- [Introduction. Why this topic?](#introduction-why-this-topic)
 
-- Part I. Reading the C Standard for Fun, Pleasure, and Profit
-    - The concept of "behavior"
-    -  Common examples
+- [Part I. Reading the C Standard for Fun, Pleasure, and Profit](#part-i-reading-the-c-standard-for-fun-pleasure-and-profit)
+    - [The concept of "behavior"](#the-concept-of-behavior)
+    - [Common examples](#common-examples)
 
-- Part II. Is UB the same as Segmentation Fault?
-    - The Abstract Machine
-    - How is this all relevant to UB?
+- [Part II. Is UB the same as Segmentation Fault?](#part-ii-is-ub-the-same-as-segmentation-fault)
+    - [The Abstract Machine](#the-abstract-machine)
+    - [How is this all relevant to UB?](#how-is-this-all-relevant-to-ub)
 
-- Part III. Why does UB exist?
-    - The Weird Way Compilers See the World
-    - Historical burden
-    - So: can architecture *define* the undefined?
+- [Part III. Why does UB exist?](#part-iii-why-does-ub-exist)
+    - [The Weird Way Compilers See the World](#the-weird-way-compilers-see-the-world)
+    - [Historical burden](#historical-burden)
+    - [So: can architecture *define* the undefined?](#so-can-architecture-define-the-undefined)
 
-- Part IV. UB @ 42
+- [Part IV. UB @ 42](#part-iv-ub--42)
 
-- Useful links for further reading
+- [Useful links for further reading](#useful-links-for-further-reading)
 
-- Footnotes
-    - Footnote 1. The Less Clearly Defined
-    - Footnote 2. Unary and Binary
-    - Footnote 3. Observable Behavior
-    - Footnote 4. Heat Control
+- [Footnotes](#footnotes)
+    - [Footnote 1. The Less Clearly Defined](#footnote-1-the-less-clearly-defined)
+    - [Footnote 2. Unary and Binary](#footnote-2-unary-and-binary)
+    - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
+    - [Footnote 4. Heat Control](#footnote-4-heat-control)
 
-- TLDR for the lazy
+- [TLDR for the lazy](#tldr-for-the-lazy)
 
 ## Introduction. Why this topic?
 
