@@ -444,6 +444,9 @@ implementation documents. An example of locale-speciﬁc behavior is whether the
 
 Again, no matter the behavior of choice, it needs to be properly documented.
 
+[[Back to guide (part I)]](#the-concept-of-behavior)<br>
+[[Back to guide (part III)]](#historical-burden)
+
 ### Footnote 2. Unary and Binary
 
 I added this Footnote because I mentioned the "unary `*` operator" - which is a quote from the Standard, but it feels weird to use it without further explanation.
@@ -457,6 +460,7 @@ Making sense of the term is quite straightforward once you know the rule of term
 
 Based on this you can probably guess that "binary `*`" perfoms multiplication (`i * j`), and "unary `*`" is the dereference operator (`*i`). The standard describes this in a fancy way: it says the unary `*` operator *denotes indirection*.
 
+[[Back to guide]](#common-examples)
 
 ### Footnote 3. Observable Behavior
 
@@ -490,6 +494,8 @@ while (i < 1000)
 the loop has to be left completely intact. Imagine there is an external device that also has access to `i` and modifies it at the same time you do. Any time you check it in the while loop, its value might be 1, 2101, or 2147483647, anything that fits into `int` range. Therefore you cannot, at any point have assumptions about the value of it, including the assumption that it will be set to a 1000 when the loop is done.
 
 While often used simply to prevent optimizations done to specific parts of the code, accesses to `volatile` objects count as observable because another outside source is supposedly communicating with your program through this means.
+
+[[Back to guide]](#the-abstract-machine)
 
 ### Footnote 4. Heat Control
 
@@ -528,6 +534,8 @@ void ft_putstr(char *str)
 }
 ```
 We don't get *less heat* for version 2, because we will still need to iterate through every character of `str`, but that heat is now diverted to the loop of `strlen`, and `write` is only called once. Remember that a call to `write` is super expensive, and the string might be quite long for what we know.
+
+[[Back to guide]](#the-weird-way-compilers-see-the-world)
 
 
 ## TLDR for the lazy
