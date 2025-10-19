@@ -454,9 +454,9 @@ I added this Footnote because I mentioned the "unary `*` operator" - which is a 
 Making sense of the term is quite straightforward once you know the rule of terminology:
 
 - **binary** operators work with two operands (values or variables) to perfrom an operation.
-    - for example, the binary `+` can be used like `i + j` - it adds to values.
+    - for example, the binary `-` can be used like `i - j`: it substracts one value from another.
 - **unary** operators perform operations on a single operand.
-    - for example, the unary `+` can be used to do `++i` - to increment a single value.
+    - for example, the unary `-` can be used to do `-i` to get the negative value of a single operand.
 
 Based on this you can probably guess that "binary `*`" perfoms multiplication (`i * j`), and "unary `*`" is the dereference operator (`*i`). The standard describes this in a fancy way: it says the unary `*` operator *denotes indirection*.
 
