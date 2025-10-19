@@ -8,7 +8,7 @@ You have found very important information. Please read further.
 
 Below you will see my big ass table of contents. Yes this guide is very long and quite detailed, but you will *not* regret reading it.
 
-In case you don't belive me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny bit of knowledge on this topic is better than just leaving.
+In case you don't believe me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny bit of knowledge on this topic is better than just leaving.
 
 ## Table of Contents
 
@@ -125,7 +125,7 @@ So, the answer to *what is Undefined Behavior?* is quite simple: UB is everythin
 
 ## Part II. Is UB the same as Segmentation Fault?
 
-I purposefully began the second part of my presentation with a question that seems very stupid at first glance. I have noticed that UB in the context of 42 curriculum (especially around Libft and the "NULL protection debate") is often discussed as "something in your code that **results in** Segmentation Fault". If you look back at the **common examples** list is just presented, you can indeed notice that if you put these in your code *in practice*, some of them will likely produce a segfault. But none of us ever got segfault on integer overflow or omitting a newline from the end of a file, so the answer to the question seems quite straightforward.
+I purposefully began the second part of my presentation with a question that seems very stupid at first glance. I have noticed that UB in the context of 42 curriculum (especially around Libft and the "NULL protection debate") is often discussed as "something in your code that **results in** Segmentation Fault". If you look back at the **common examples** list i just presented, you can indeed notice that if you put these in your code *in practice*, some of them will likely produce a segfault. But none of us ever got segfault on integer overflow or omitting a newline from the end of a file, so the answer to the question seems quite straightforward.
 
 But I believe this question, when asked by someone, usually has a deeper meaning behind it. And I think the real question being asked here is:
 
@@ -177,7 +177,7 @@ Remember the definition of UB:
 of erroneous data, for which this International Standard **imposes no
 requirements**.
 
-When the compiler encounters UB in your code, there is absolutely no requirements as to what it should translate it into. You have probably heard the phrase before that it can write code that "formats your hard drive". While it won't theoretically, it really can. It is **free to do anything**, and is not even required to document it.
+When the compiler encounters UB in your code, there is absolutely no requirements as to what it should translate it into. You have probably heard the phrase before that it can write code that "formats your hard drive". While it likely won't in practice, theoretically, it really can. It is **free to do anything**, and is not even required to document it.
 
 The tiny executable I have created for my presentation is a good example: in the C code, we dereference a `NULL` ptr in a loop, and then (in case we somehow survive) return 42. Compiled with `gcc`, our expectations are matched: we get Segmentation Fault. Compiled with `clang` however, nothing observable happens - we can also check that, for some strange reason, our program returned with a value of 48. And the point of UB is, that *this is fine.*
 
@@ -347,7 +347,7 @@ Optimization is not supposed to change the *observable* behavior of the program,
 
 Since the compiler has no way to know what `max_y` is and it's strictly forbidden from changing the intended behavior of your machine, the only choice it has left is to *not perform any optimizations*. If overflow is *impossible* however, then we don't have to deal with doubts like this.
 
-But it's not only integer overflow we are talking about here. This way of thinking applies to all UB, for example, the compiler will also assume that **dereferencing a NULL pointer is impossible**. In practice this means that in case it seems `*ptr` or `ptr[i]` anywhere in your code, it can work with the assumption that `ptr` is *not* NULL.
+But it's not only integer overflow we are talking about here. This way of thinking applies to all UB, for example, the compiler will also assume that **dereferencing a NULL pointer is impossible**. In practice this means that in case it sees `*ptr` or `ptr[i]` anywhere in your code, it can work with the assumption that `ptr` is *not* NULL.
 
 To understand why this can have horrible consequences, I will tell you another assumption compilers like to work with: *all functions will return*. There are only a very few set of specific functions (like `abort` or `exit`) where it knows this is not the case. Combine these two assumptions and you get code like:
 ```
@@ -404,13 +404,13 @@ Another thing that has been a discussion on my campus is how UB should be treate
 
 A common understanding of this line (at least on my campus) is that NULL checks placed in `Libft` functions are not necessary (the function should have an option to segfault if it receives a NULL pointer).
 
-Since Moulinette does not let us use assertions and the other option would be to silence the error happening (by simply returning from the function), I also share this opinion. This **does not mean however**, that if any such function used later in a bigger project (like cube) actually *does* receive a NULL (either because of a missing malloc protection or other mistake) and segfaults, that the project is still passable. Even thoguh, very strictly speaking, cube eventually died because of UB that happened at runtime, and one could understand the subject as allowing this.
+Since Moulinette does not let us use assertions and the other option would be to silence the error happening (by simply returning from the function), I also share this opinion. This **does not mean however**, that if any such function used later in a bigger project (like cube) actually *does* receive a NULL (either because of a missing malloc protection or other mistake) and segfaults, that the project is still passable. Even though, very strictly speaking, cube eventually died because of UB that happened at runtime, and one could understand the subject as allowing this.
 
 At the same time, I really do not know what kind of segfault or double free the subject is thinking of that *does not come from* undefined behavior.
 
 ## Useful links for further reading
 
-This is the end of UB guide. Thanks for reading so far and hopefully you could find some knowledge you can take with yourself for the future. For me, learning about the way the compiler think when it processes our files completely changed how I look at C language.
+This is the end of UB guide. Thanks for reading so far and hopefully you could find some knowledge you can take with yourself for the future. For me, learning about the way the compiler thinks when it processes our files completely changed how I look at C language.
 
 Here are some sources for further reading (with a lot more practical examples that I have provided) that might also be interesting for you:
 - [LLVM Project Blog – What every C programmer should know about Undefined Behavior](https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html) (by Chris Lattner)
@@ -429,7 +429,7 @@ The first of such is **unspecified behavior** (often confused with undefined beh
 > provides two or more possibilities and imposes no further requirements on which is chosen in any Instance.
 
 An example of unspeciﬁed behavior is the order in which the arguments to a function are
-evaluated. For example, from the code `write(1, string(), len());` alone, it is impossible to tell whenever `string()` function (this returns a `char *`) or `len()` function (this returns an `int`) will be called first.
+evaluated. For example, from the code `write(1, string(), len());` alone, it is impossible to tell if `string()` function (this returns a `char *`) or `len()` function (this returns an `int`) will be called first.
 
 **Implementation-deﬁned behavior** is a stricter subgroup of unspecified behavior. The defintion of this is the following:
 
@@ -473,7 +473,7 @@ What are `volatile` objects?
 - "Object" here means anything, even a `char` or an `int`, not necessarily in a "C++ object" sense.
 - `volatile` is a keyword in C and C++ like `const`. Just like you could have an `int` or a `const int`, you can also have a `volatile int` and so on.
 
-In practice, `volatile` means the value of this object can be changed at any time *by an external source*, unrelated to what is happening in your code. In practice this is mostly needed in embedded sytems - let's say a certain memory location connects you with another device that communicates you by writing there. You keep reading it and each time you read it, something else is written there, even though none of that is done by *you* from *your code*. `volatile` is your way of letting the compiler know this will happen, so it will never consider to remove or reorganize these reads for convenience.
+In practice, `volatile` means the value of this object can be changed at any time *by an external source*, unrelated to what is happening in your code. In practice this is mostly needed in embedded sytems - let's say a certain memory location connects you with another device, that communicates with you by writing there. You keep reading it and each time you read it, something else is written there, even though none of that is done by *you* from *your code*. `volatile` is your way of letting the compiler know this will happen, so it will never consider to remove or reorganize these reads for convenience.
 
 This is important from the aspect of optimizations because if you have a loop like this:
 ```
