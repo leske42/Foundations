@@ -296,7 +296,7 @@ In other words, coming back to our example in the beginning: if integer overflow
 
 Only in computing it can happen that `x + 1` ends up being smaller than `x`, this would be impossible in math. Making the compiler be aware of this would mean we are not allowing it to have any assumptions about the result of arithmetic operations - but assumptions (like the one that `x + 1` will be bigger than `x`) are necessary to perform optimizations, like simplification of an expression.
 
-Not that this assumption has the side effect that calling a function like this:
+Note that this assumption has the side effect that calling a function like this:
 
 ```
 bool detect_overflow(int x)
