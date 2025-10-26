@@ -38,6 +38,8 @@ In case you don't believe me for some reason, I have added a [TLDR section](#tld
     - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
     - [Footnote 4. Heat Control](#footnote-4-heat-control)
 
+- [UB Reference List](#ub-reference-list)
+
 - [TLDR for the lazy](#tldr-for-the-lazy)
 
 ## Introduction. Why this topic?
@@ -107,7 +109,7 @@ Any of this might happen, but these are also just examples. *The Standard claims
 
 ### Common examples
 
-*What exactly* counts as undefined behavior is surprisingly well-defined in the C Standard. There is a specific list around the end of it, which collects all of the examples for UB mentioned in the previous sections, and this list goes on for about 6 pages.
+*What exactly* counts as undefined behavior is surprisingly well-defined in the C Standard. There is a specific list around the end of it, which collects all of the examples for UB mentioned in the previous sections, and this list goes on for about 13 pages.
 
 Some arbitrary examples from this list that you might recognize from your C projects:
 - The operand of the unary (see my [Footnote #2](#footnote-2-unary-and-binary)) `*` operator has an invalid value.
@@ -119,7 +121,7 @@ Some arbitrary examples from this list that you might recognize from your C proj
 - The program encounters signed integer overflow.
 - A nonempty source file does not end in a new-line character (yes that is right)
 
-You can find more examples in my presentation (or even more in the standard itself) if you are interested.
+You can find more examples in my presentation, my recently added [UB Reference List](#ub-reference-list), or even more in the standard itself if you are interested.
 
 So, the answer to *what is Undefined Behavior?* is quite simple: UB is everything in your code, the behavior of which is either not defined in the standard at all, or is *defined explicitly as undefined.*
 
@@ -197,7 +199,7 @@ As soon as you put UB anywhere in your code, squares don't need to be turned int
 </div>
 <br>
 
-And remember that there is a *6 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
+And remember that there is a *13 page long* list in the C standard about all the such things you should avoid. Most of them we probably don't even know. So this gives legitimacy of the picture I started my presentation with:
 
 <div align="center">
 <img src="./img/img1.png" width="600">
@@ -537,6 +539,82 @@ We don't get *less heat* for version 2, because we will still need to iterate th
 
 [[Back to guide]](#the-weird-way-compilers-see-the-world)
 
+## UB Reference List
+
+The following list is **by all means not comprehensive**. Please look at the Standard when in doubt. That said, do try to avoid this stuff in your code:
+
+**Common stuff**
+- Signed integer **overflow**
+- The execution of a program contains a **data race**
+- An object is referred to outside of its lifetime (e.g. after it's freed or went out of scope), the value of a **pointer to** an object whose lifetime has ended is used
+- Using a local (stack) variable (this is called an object with *automatic storage duration* by Standard) that **hasn't been initialized**
+    - using includes **passing it to another function** without taking the address of it!
+- The program attempts to **modify a string literal**
+- The operand of the unary `*` operator has an invalid value
+    - this could be a **null pointer**,
+    - an **inappropriately aligned** address,
+    - or the address of an object after the end of its lifetime ("use after free" belongs here).
+- The value of the second operand of the `/` or `%` operator is **zero**
+- An attempt is made to **copy an object to an overlapping object** by use of a library function, other than as explicitly allowed (e.g., `memmove`)
+
+**Using malloc and free**
+- Accessing the allocated memory returned by `malloc` before it is initialized (as the value of this is indeterminate)
+- Trying to `free` or `realloc` something that **has not been allocated** (like pointer to stack) or has been freed already
+    - officially written: The pointer argument to `free` or `realloc` was not earlier returned by a memory management function (like `malloc`), or the space has been deallocated
+- The value of a pointer that **refers to space deallocated** by a call to the `free` or `realloc` function is **used**
+-  A non-null pointer returned by a call to the `calloc`, `malloc`, or `realloc` function with a **zero requested size** is used to access an object
+
+**Type casting**
+- In general: **casting down** to a type whose size is smaller than your current type's size, in case your value doesn't fit in the new size
+    - in Standard language: if the conversion produces a value **outside the range that can be represented.**
+    - like casting an `int i = 1000;` to `char` which can only hold values up to 255
+    - but also true for casting a `double` to a `float`, or a pointer to a smaller integer type
+- Casting a `void` expression to something other than `void`
+- Conversion between two pointer types produces a result that is **incorrectly aligned**
+- The value of an argument to a character handling function is neither equal to the value of `EOF` (this is -1 usually) nor representable as an `unsigned char`
+
+**Bit shifting**
+- A value is shifted **by a negative number** or by an amount greater than or equal to the bits in the type of the value (for example more than 31 for an `unsigned int`) after promotion
+    - promotion here refers to **integer promotion** - small integer types like `char` are automatically promoted to `int` size whenever those values are used in expressions (arithmetic, bitwise, comparisons)
+- Something that has a **signed type and negative value** is left-shifted
+
+**Pointer magic**
+- Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array)
+- Similarly, **subtracting** pointers that do not point into, or just beyond, the same array
+- **Adding or subtracting** an integer to/from a pointer if the result pointer doesn't point inside the original array anymore (or one past its end)
+    - while pointing one past an array's end (see `end` iterator in C++) is allowed, **dereferencing** such a pointer is UB
+- An array subscript (like `ptr[10]`) is **out of range**, even if an object is apparently accessible with the given subscript
+    - this is quite similar to the previous example, because the definition of `[]` (the *subscript operator*) is that `ptr[x]` is identical to `*(ptr + x)`.
+- Converting (casting) a pointer to other than an integer or pointer type
+
+**Variadic functions (ft_printf)**
+-  The `va_arg` macro is invoked when there is **no** actual **next argument**, or with a specified **type that is not compatible** with the promoted type of the actual next argument
+    - mind the "promoted type" here! This is why you need to access the value for `%c` as an `int`
+- The `va_start` or `va_copy` macro is invoked **without** a corresponding invocation of the `va_end` macro in the same function, or vice versa
+- The `va_list` object `ap` is **passed to a function** that uses `va_arg` with it, then another `va_arg` is invoked with this `ap` as parameter **after the return of that function**
+    - *almost everyone in CC does this!*
+    - you can avoid it by passing a pointer to `ap` instead of the object directly
+- An argument to a `%s` conversion specifier is **missing the null terminator**
+
+**Signals**
+- The `signal` function is used in a **multi-threaded program**
+- A signal handler called in response to `SIGFPE`, `SIGILL`, `SIGSEGV`, or any other value corresponding to a computational exception **returns**
+- A signal occurs other than as the result of calling the `abort` or `raise` function, and...
+    - the signal handler refers to (uses) an object, except for assigning a value to an object declared as `volatile sig_atomic_t`
+    - **calls any function in the standard library** other than the `abort` function, the `_Exit` function, the `quick_exit` function, or the `signal` function (for the same signal number)
+
+**Weird shit**
+- A nonempty source file **does not end in a new-line character**
+- A program does not define a function named **main** using one of the specified forms
+- The initial character of an identifier (name of a variable, function, macro etc.) is a **digit**, or it begins with double underscore or an underscore and uppercase character
+- The program **removes the definition** (`#undef`) of a macro whose name begins with an underscore and either an uppercase letter or another underscore
+- The program defines an identifier with the name **errno**
+- There are quotes, or comments marked by `//`or `/*` between the header name delimiters (`<` and `>` or `"`)
+- The type (return value) of a function includes any type qualifiers (like `volatile` or `const`)
+- A file with the same name as one of the standard headers (but not one of them) is placed in any of the standard places that are searched for included source files
+- The value of a pointer to a `FILE` object is used after the associated file is closed
+- A function with external linkage is declared with an `inline` function specifier, but is not also defined in the same translation unit (so compiler cannot find it)
+- The same identifier has both internal and external linkage in the same translation unit
 
 ## TLDR for the lazy
 
