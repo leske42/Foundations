@@ -311,7 +311,7 @@ can be collapsed into `false` (and thus lose its purpose) with optimizations ena
 
 Another instance at optimization where doing "pure math" instead of the CS version comes in handy is **loop unrolling**. This technique is super common and one of the most powerful tools of the compiler when it comes to actual execution time spared.
 
-If you have a loop that does 1 operation for `n` iterations, it can be transformed into another that does, let's say, 4 operations for `n / 4` iterations instead (you for sure need to do the leftover separately ). I made a very simple illustration of this in my presentation:
+If you have a loop that does 1 operation for `n` iterations, it can be transformed into another that does, let's say, 4 operations for `n / 4` iterations instead (you for sure need to do the leftover separately). I made a very simple illustration of this in my presentation:
 
 <div align="center">
 <img src="./img/img9.png" width="600">
@@ -363,7 +363,7 @@ optimized into
 char *result = malloc(result_size);
 result[0] = '\0';
 ```
-If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen on all possible branches of execution. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` check can be removed completely.
+If `ft_exit` is assumed to return (and it also clearly doesn't modify `result`), dereferencing `result` will happen on all possible branches of execution. That means it *cannot* be a NULL pointer, that means the `if` condition will always be false, so the `if` statement can be removed completely.
 
 I know it looks hard to process at first, and honestly speaking, it made me lose a lot of trust in C language. I find the situation super scary. As a C programmer, you *rely* on the compiler. You have no other way to get your code to the CPU but through the compiler. But the compiler behaves like a very delusional madman. Or rather, it behaves perfectly rational in the constrains of its own weird world and the rules of compiler-think. But most developers are not aware of compiler-think at all. And if the developer and compiler don't speak the same language, then sooner or later, but definitely surely, weird shit will happen.
 
@@ -560,7 +560,6 @@ The following list is **by all means not comprehensive**. Please look at the Sta
 **Using malloc and free**
 - Accessing the allocated memory returned by `malloc` before it is initialized (as the value of this is indeterminate)
 - Trying to `free` or `realloc` something that **has not been allocated** (like pointer to stack) or has been freed already
-    - officially written: The pointer argument to `free` or `realloc` was not earlier returned by a memory management function (like `malloc`), or the space has been deallocated
 - The value of a pointer that **refers to space deallocated** by a call to the `free` or `realloc` function is **used**
 -  A non-null pointer returned by a call to the `calloc`, `malloc`, or `realloc` function with a **zero requested size** is used to access an object
 
