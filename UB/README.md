@@ -38,7 +38,7 @@ In case you don't believe me for some reason, I have added a [TLDR section](#tld
     - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
     - [Footnote 4. Heat Control](#footnote-4-heat-control)
 
-- [UB Reference List](#ub-reference-list)
+- [NEW PART: UB Reference List](#ub-reference-list)
 
 - [TLDR for the lazy](#tldr-for-the-lazy)
 
@@ -541,7 +541,9 @@ We don't get *less heat* for version 2, because we will still need to iterate th
 
 ## UB Reference List
 
-The following list is **by all means not comprehensive**. Please look at the Standard when in doubt. That said, do try to avoid this stuff in your code:
+The following list is based on C11 Standard. It is **by all means not comprehensive**. Please look at the Standard when in doubt.
+
+That said, do try to avoid this stuff in your code:
 
 **Common stuff**
 - Signed integer **overflow**
@@ -564,12 +566,13 @@ The following list is **by all means not comprehensive**. Please look at the Sta
 -  A non-null pointer returned by a call to the `calloc`, `malloc`, or `realloc` function with a **zero requested size** is used to access an object
 
 **Type casting**
-- In general: **casting down** to a type whose size is smaller than your current type's size, in case your value doesn't fit in the new size
-    - in Standard language: if the conversion produces a value **outside the range that can be represented.**
-    - like casting an `int i = 1000;` to `char` which can only hold values up to 255
-    - but also true for casting a `double` to a `float`, or a pointer to a smaller integer type
+
+- Casting a floating point number to an integer type, **in case the result would be bigger** (outside of the range of) **than what the integer can represent**.
+    - this is also something that *is* defined on architecture level (at least on Vienna campus computers): the [instruction](https://c9x.me/x86/html/file_module_x86_id_61.html) responsible for the cast, `cvttss2si` gives you `INT_MIN` if a converted result cannot be represented in the destination format. But because of Standard's wording, you cannot expect compiler to emit this instruction.
+- The same rule (you get UB if the result doesn't fit in destination format) is also true for casting a `double` to a `float`, or a pointer to a smaller integer type
 - Casting a `void` expression to something other than `void`
-- Conversion between two pointer types produces a result that is **incorrectly aligned**
+- Conversion between **pointers** to **incompatible** object types (this basically means pointers to *different* tpyes, like a `float *` and an `int *`), in case you access the underlying value as the new type
+- Conversion between two pointer types if it produces a result that is **incorrectly aligned**
 - The value of an argument to a character handling function is neither equal to the value of `EOF` (this is -1 usually) nor representable as an `unsigned char`
 
 **Bit shifting**
@@ -611,9 +614,6 @@ The following list is **by all means not comprehensive**. Please look at the Sta
 - There are quotes, or comments marked by `//`or `/*` between the header name delimiters (`<` and `>` or `"`)
 - The type (return value) of a function includes any type qualifiers (like `volatile` or `const`)
 - A file with the same name as one of the standard headers (but not one of them) is placed in any of the standard places that are searched for included source files
-- The value of a pointer to a `FILE` object is used after the associated file is closed
-- A function with external linkage is declared with an `inline` function specifier, but is not also defined in the same translation unit (so compiler cannot find it)
-- The same identifier has both internal and external linkage in the same translation unit
 
 ## TLDR for the lazy
 
