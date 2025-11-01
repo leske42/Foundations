@@ -10,6 +10,8 @@ Below you will see my big ass table of contents. Yes this guide is very long and
 
 In case you don't believe me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny bit of knowledge on this topic is better than just leaving.
 
+If you are coming back to this guide, from, let's say, an eval, you can use my quick UB [Reference List](#ub-reference-list) to check if you have encountered something dangerous (but it by far does not cover all the possible dangers out there).
+
 ## Table of Contents
 
 - [Introduction. Why this topic?](#introduction-why-this-topic)
@@ -37,6 +39,7 @@ In case you don't believe me for some reason, I have added a [TLDR section](#tld
     - [Footnote 2. Unary and Binary](#footnote-2-unary-and-binary)
     - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
     - [Footnote 4. Heat Control](#footnote-4-heat-control)
+    - [Footnote 5. Do benign data races exist?](#footnote-5-do-benign-data-races-exist)
 
 - [NEW PART: UB Reference List](#ub-reference-list)
 
@@ -598,7 +601,7 @@ That said, do try to avoid this stuff in your code:
 - Something that has a **signed type and negative value** is left-shifted
 
 **Pointer magic**
-- Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array)
+- Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array. This is related to a concept called [provenance](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1434r0.html))
 - Similarly, **subtracting** pointers that do not point into, or just beyond, the same array
 - **Adding or subtracting** an integer to/from a pointer if the result pointer doesn't point inside the original array anymore (or one past its end)
     - while pointing one past an array's end (see `end` iterator in C++) is allowed, **dereferencing** such a pointer is UB
@@ -632,7 +635,7 @@ That said, do try to avoid this stuff in your code:
 - The type (return value) of a function includes any type qualifiers (like `volatile` or `const`)
 - A file with the same name as one of the standard headers (but not one of them) is placed in any of the standard places that are searched for included source files
 
-[[Back to guide]](#common-examples)
+[[Back to top]](#table-of-contents)
 
 ## TLDR for the lazy
 
