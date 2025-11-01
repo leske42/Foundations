@@ -119,6 +119,7 @@ Some arbitrary examples from this list that you might recognize from your C proj
 - The value of the second operand of the `/` or `%` operator is zero.
 - The program attempts to modify a string literal.
 - The program encounters signed integer overflow.
+- The execution of a program contains a data race (see my [Footnote #5](#footnote-5-do-benign-data-races-exist)).
 - A nonempty source file does not end in a new-line character (yes that is right)
 
 You can find more examples in my presentation, my recently added [UB Reference List](#ub-reference-list), or even more in the standard itself if you are interested.
@@ -539,6 +540,22 @@ We don't get *less heat* for version 2, because we will still need to iterate th
 
 [[Back to guide]](#the-weird-way-compilers-see-the-world)
 
+### Footnote 5. Do benign data races exist?
+
+Let's say you have a variable `hehe` that is written to by one thread and another keeps reading it (both are holding the address of it).
+
+We have learned that data race is dangerous, because of situations like two threads trying to modify the same resource at the same time, where we might end up with a garbage value stored. But in our case, if `hehe` is a simple `int`, both the loads and stores of it will be atomic, so the reading thread can never read a partially modified value from the address. It might read a slightly outdated value if modification is in progress at the same time, but if this is not a big issue, one can say it will be updated at the next read anyway.
+
+Therefore it might seem redundant at first to protect a setup like this with a mutex. Similar situations can even be heard being called as "benign data races" in some contexts.
+
+But if you observe the situation through the lens of [compiler-think](#the-weird-way-compilers-see-the-world), you will quickly see why it can be a lot more dangerous as it presents itself. What compiler will see in the reading thread is that `hehe` is read multiple times, but if it *was* shared resource, the programmer would have protected it with a mutex, since the alternative (letting data race happen) is undefined (which, as we have seen, is treated as impossible).
+
+This way, compiler arrives at the conclusion that `hehe` is owned by this thread only, and if it is read frequently, it might decide to keep it cached. So even through the writing thread will update its value, the reading thread will never receive it. If compiler sees `hehe` was, let's say, 3 in the beginning (and is not `volatile`, so will not undexpectedly change), it will keep feeding your thread the value 3 every time it tries to access it.
+
+You can read more about the issue with "benign" data races and UB in this [nice article](https://www.usenix.org/legacy/event/hotpar11/tech/final_files/Boehm.pdf).
+
+[[Back to guide]](#common-examples)
+
 ## UB Reference List
 
 The following list is based on C11 Standard. It is **by all means not comprehensive**. Please look at the Standard when in doubt.
@@ -614,6 +631,8 @@ That said, do try to avoid this stuff in your code:
 - There are quotes, or comments marked by `//`or `/*` between the header name delimiters (`<` and `>` or `"`)
 - The type (return value) of a function includes any type qualifiers (like `volatile` or `const`)
 - A file with the same name as one of the standard headers (but not one of them) is placed in any of the standard places that are searched for included source files
+
+[[Back to guide]](#common-examples)
 
 ## TLDR for the lazy
 
