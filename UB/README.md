@@ -10,6 +10,8 @@ Below you will see my big ass table of contents. Yes this guide is very long and
 
 In case you don't believe me for some reason, I have added a [TLDR section](#tldr-for-the-lazy) at the end specifically for lazy people. Leaving with even a tiny bit of knowledge on this topic is better than just leaving.
 
+If you are coming back to this guide, from, let's say, an eval, you can use my quick UB [Reference List](#ub-reference-list) to check if you have encountered something dangerous (but it by far does not cover all the possible dangers out there).
+
 ## Table of Contents
 
 - [Introduction. Why this topic?](#introduction-why-this-topic)
