@@ -71,7 +71,7 @@ In order to understand the concept of Undefined Behavior, we have to talk about 
 
 C language was invented in the 1970s by one guy named Dennis Ritchie. As it became very popular there was the need to standardize it - the first such standard was the ANSI C standard in 1989. Today this is the job of the International Organization for Standardization (ISO) who come up with a new C standard every couple of years.
 
-In my presentation I have provided some excerpts to show how the C standard looks like on the inside. You can also find some versions [on the internet](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) if you are interested, but it's a very dry document to read.
+In my [presentation](https://github.com/leske42/Foundations/blob/main/UB/UB_workshop_2025.pdf) I have provided some excerpts to show how the C standard looks like on the inside. You can also find some versions [on the internet](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf) if you are interested, but it's a very dry document to read.
 
 The thing is, one doesn't need to read the C Standard to be decent at writing C language. YouTube tutorials or other learning specific material is probably better suited for this case.
 
@@ -588,10 +588,11 @@ That said, do try to avoid this stuff in your code:
 **Type casting**
 
 - Casting a floating point number to an integer type, **in case the result would be bigger** (outside of the range of) **than what the integer can represent**.
-    - this is also something that *is* defined on architecture level (at least on Vienna campus computers): the [instruction](https://c9x.me/x86/html/file_module_x86_id_61.html) responsible for the cast, `cvttss2si` gives you `INT_MIN` if a converted result cannot be represented in the destination format. But because of Standard's wording, you cannot expect compiler to emit this instruction.
+    - this is also something that *is* defined on architecture level (at least on Vienna campus computers): e.g. for a 32-bit int, the [instruction](https://c9x.me/x86/html/file_module_x86_id_61.html) responsible for the cast, `cvttss2si` gives you `INT_MIN` if a converted result cannot be represented in the destination format. But because of Standard's wording, you cannot expect compiler to emit this instruction.
 - The same rule (you get UB if the result doesn't fit in destination format) is also true for casting a `double` to a `float`, or a pointer to a smaller integer type
 - Casting a `void` expression to something other than `void`
-- Conversion between **pointers** to **incompatible** object types (this basically means pointers to *different* tpyes, like a `float *` and an `int *`), in case you access the underlying value as the new type
+- Casting a pointer to other than an integer or pointer type
+- Conversion between **pointers** to **incompatible** object types (this basically means pointers to *different* types, like a `float *` and an `int *`), in case you access the underlying value as the new type
 - Conversion between two pointer types if it produces a result that is **incorrectly aligned**
 - The value of an argument to a character handling function is neither equal to the value of `EOF` (this is -1 usually) nor representable as an `unsigned char`
 
@@ -607,7 +608,6 @@ That said, do try to avoid this stuff in your code:
     - while pointing one past an array's end (see `end` iterator in C++) is allowed, **dereferencing** such a pointer is UB
 - An array subscript (like `ptr[10]`) is **out of range**, even if an object is apparently accessible with the given subscript
     - this is quite similar to the previous example, because the definition of `[]` (the *subscript operator*) is that `ptr[x]` is identical to `*(ptr + x)`.
-- Converting (casting) a pointer to other than an integer or pointer type
 
 **Variadic functions (ft_printf)**
 -  The `va_arg` macro is invoked when there is **no** actual **next argument**, or with a specified **type that is not compatible** with the promoted type of the actual next argument
@@ -622,8 +622,10 @@ That said, do try to avoid this stuff in your code:
 - The `signal` function is used in a **multi-threaded program**
 - A signal handler called in response to `SIGFPE`, `SIGILL`, `SIGSEGV`, or any other value corresponding to a computational exception **returns**
 - A signal occurs other than as the result of calling the `abort` or `raise` function, and...
-    - the signal handler refers to (uses) an object, except for assigning a value to an object declared as `volatile sig_atomic_t`
+    - the signal handler refers to (uses) either a **heap allocated**, a **global** or a **static** variable, except for assigning a value to an object declared as `volatile sig_atomic_t`, or using atomic objects (from `stdatomic.h`)
     - **calls any function in the standard library** other than the `abort` function, the `_Exit` function, the `quick_exit` function, or the `signal` function (for the same signal number)
+        - keep in mind direct syscalls from `unistd.h` (and sometimes other headers) are *not* part of standard library
+        - on [this page](https://pubs.opengroup.org/onlinepubs/9799919799/functions/V2_chap02.html#tag_16_04_03:~:text=the%20behavior%20is%20undefined%20if%3A), you can find a list of functions that are safe to use in signal handler
 
 **Weird shit**
 - A nonempty source file **does not end in a new-line character**
@@ -651,7 +653,7 @@ In this last section I will provide a quick summary to those who don't feel like
 - A different compiler or a different optimization level might create **something entirely different from the same code** if it has UB in it.
 - UB is actually super common. You probably have it in at least one of your 42 projects, but quite possibly more.
 
-Please go back and read the full guide if this sounds scary enough.
+Please go back and read the [full guide](#introduction-why-this-topic) if this sounds scary enough.
 
 May the gods of cursed C code have mercy on our soul.
 
