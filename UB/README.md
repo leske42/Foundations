@@ -39,6 +39,7 @@ If you are coming back to this guide, from, let's say, an eval, you can use my q
     - [Footnote 2. Unary and Binary](#footnote-2-unary-and-binary)
     - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
     - [Footnote 4. Heat Control](#footnote-4-heat-control)
+    - [Footnote 5. Do benign data races exist?](#footnote-5-do-benign-data-races-exist)
 
 - [NEW PART: UB Reference List](#ub-reference-list)
 
