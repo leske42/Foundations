@@ -600,7 +600,7 @@ That said, do try to avoid this stuff in your code:
 - Something that has a **signed type and negative value** is left-shifted
 
 **Pointer magic**
-- Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array)
+- Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array. This is related to a concept called [provenance](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1434r0.html))
 - Similarly, **subtracting** pointers that do not point into, or just beyond, the same array
 - **Adding or subtracting** an integer to/from a pointer if the result pointer doesn't point inside the original array anymore (or one past its end)
     - while pointing one past an array's end (see `end` iterator in C++) is allowed, **dereferencing** such a pointer is UB
@@ -634,7 +634,7 @@ That said, do try to avoid this stuff in your code:
 - The type (return value) of a function includes any type qualifiers (like `volatile` or `const`)
 - A file with the same name as one of the standard headers (but not one of them) is placed in any of the standard places that are searched for included source files
 
-[[Back to guide]](#common-examples)
+[[Back to top]](#table-of-contents)
 
 ## TLDR for the lazy
 
