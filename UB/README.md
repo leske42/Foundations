@@ -40,6 +40,7 @@ If you are coming back to this guide, from, let's say, an eval, you can use my q
     - [Footnote 3. Observable Behavior](#footnote-3-observable-behavior)
     - [Footnote 4. Heat Control](#footnote-4-heat-control)
     - [Footnote 5. Do benign data races exist?](#footnote-5-do-benign-data-races-exist)
+    - [Footnote 6. The Right Way to do signals in minishell](#footnote-6-the-right-way-to-do-signals-in-minishell)
 
 - [NEW PART: UB Reference List](#ub-reference-list)
 
@@ -47,7 +48,7 @@ If you are coming back to this guide, from, let's say, an eval, you can use my q
 
 ## Introduction. Why this topic?
 
-This is a topic none of the projects we do at 42 deal with. You can complete all of your Common Core without ever reading up on it. You will likely encounter it *in practice*, but even then it will likely remain unnoticed.
+This is a topic none of the projects we do at 42 deal with. You can complete all of your Common Core without ever reading up on it. You will likely encounter it *in practice* (for example at `ft_printf` or at the [signal handling](#footnote-6-the-right-way-to-do-signals-in-minishell) in `minishell`), but even then it will likely remain unnoticed.
 
 This is because the curriculum in 42 in general leaves it up to the individual if they want to look into theory or not.
 
@@ -559,6 +560,50 @@ You can read more about the issue with "benign" data races and UB in this [nice 
 
 [[Back to guide]](#common-examples)
 
+### Footnote 6. The Right Way to do signals in `minishell`
+
+You might remember I have mentioned in the introduction that you will likely encounter Undefined Behavior in your C projects without being aware of it. `ft_printf` is a very good example of this (you can check my [Reference List](#ub-reference-list) for further explanation), but another point where probably most people unknowingly put UB in their project is the **signal handling** in `minishell`.
+
+*Recently a few of us at Vienna campus discovered that basically all teams in all of our cohorts did this wrong, for 3 years straight.*
+
+This is because we all have signal handlers to handle the `Ctrl+C` (required by subject) that look like the following or similar:
+```
+void    handler(int status)
+{
+    if (status == SIGINT)
+    {
+        g_signal = CTRL_C;
+        ioctl(STDIN_FILENO, TIOCSTI, "\n");
+        rl_replace_line("", 0);
+        rl_on_new_line();
+    }
+}
+```
+(This piece of code is from my minishell from 2 years ago)
+
+According to C standard, the **only legitimate line** from this function above is `g_signal = CTRL_C;` (provided `g_signal` is of type `volatile sig_atomic_t`).
+
+Everything else from above example is **forbidden to do in signal handler and leads to Undefined Behavior.**
+
+Performing any of the following in a signal handler counts as undefined:
+- using either a **heap allocated**, a **global** or a **static** variable, except for assigning a value to an object declared as `volatile sig_atomic_t`, or using atomic objects (from `stdatomic.h`)
+- **calling any function** in the standard library other than the `abort` function, the `_Exit` function, the `quick_exit` function, or the `signal` function (for the same signal number)
+
+**So how can we fix this?**
+
+It turns out library of `readline` provides a solution specifically for this case. This is a varibale called `rl_signal_event_hook`, which you have access to by including `<readline/readline.h>`. The official description of this variable is the following:
+> If non-zero, this is the address of a function to call if a read system call is interrupted by a signal when Readline is reading terminal input.
+
+So the variable itself stores a function pointer - you can assign any function to it, and this function will be automatically called (safely, [from outside](https://github.com/sailfishos-mirror/readline/blob/15970c431517a046099d8294c91d778b1da9b29d/input.c#L977) the signal handler) if the reading operation of `readline` is interrupted.
+
+<div align="center">
+<img src="./img/img11.png" width="400">
+</div>
+
+<br>Please share this information and if you haven't done the project yet, make sure to not put any UB in your minishell!
+
+[[Back to guide]](#introduction-why-this-topic)
+
 ## UB Reference List
 
 The following list is based on C11 Standard. It is **by all means not comprehensive**. Please look at the Standard when in doubt.
@@ -626,6 +671,7 @@ That said, do try to avoid this stuff in your code:
     - **calls any function in the standard library** other than the `abort` function, the `_Exit` function, the `quick_exit` function, or the `signal` function (for the same signal number)
         - keep in mind direct syscalls from `unistd.h` (and sometimes other headers) are *not* part of standard library
         - on [this page](https://pubs.opengroup.org/onlinepubs/9799919799/functions/V2_chap02.html#tag_16_04_03:~:text=the%20behavior%20is%20undefined%20if%3A), you can find a list of functions that are safe to use in signal handler
+        - please also visit my [footnote](#footnote-6-the-right-way-to-do-signals-in-minishell) on how to do the signal handling in `minishell` properly
 
 **Weird shit**
 - A nonempty source file **does not end in a new-line character**
