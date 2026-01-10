@@ -165,7 +165,7 @@ The Standard describes this saying what the compiler puts into the binary does n
 identical to the result that execution of the program according to the
 abstract semantics would have produced.
 
-This is one is also called the **as-if rule**. The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
+This one is also called the **as-if rule**. The "abstract semantics" they mention here is your C code, the blueprint the compiler has to follow.
 
 <div align="center">
 <img src="./img/img7.png" width="600">
@@ -417,7 +417,7 @@ I believe the confusion can be cleared up if we see that the line in question is
 
 > the results are undefined if source and destination buffers overlap.
 
-Similarly, when *you* write a function, you have the right to say: "when you use my function, only pass arguments that are formatted `x` way or satisfy `y` condition." Then, just like it is your responsibility to avoid using C code in a way it is not meant to be used, it will be the responsibility of the person using your functions (should this be you in a later project, or an evaluator of your `libft`) to respect these rules.
+Similarly, when *you* write a function, you have the right to say: "when you use my function, only pass arguments that are formatted `x` way or satisfy `y` condition." Then, just like it is your responsibility to avoid using C code in a way it is not meant to be used, it will be the responsibility of the person using your functions (should this be you or a teammate in a later project, or an evaluator of your `libft`) to respect these rules.
 
 If the rules are not respected, anything can happen.
 
