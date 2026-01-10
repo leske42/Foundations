@@ -662,6 +662,7 @@ That said, do try to avoid this stuff in your code:
 
 **Pointer magic**
 - Comparing pointers to **unrelated objects** (like using `<` or `<=` etc. on pointers that do not point into the same array. This is related to a concept called [provenance](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1434r0.html))
+    - This is a common issue! For example, when we check in `memmove` if two memory areas overlap - we have no knowledge if the two pointers we receive are related to each other in any way or not. A way to circumvent this issue (the same way `glibc` uses) is casting the pointers to an integer type before comparison.
 - Similarly, **subtracting** pointers that do not point into, or just beyond, the same array
 - **Adding or subtracting** an integer to/from a pointer if the result pointer doesn't point inside the original array anymore (or one past its end)
     - while pointing one past an array's end (see `end` iterator in C++) is allowed, **dereferencing** such a pointer is UB
