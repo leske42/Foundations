@@ -409,11 +409,25 @@ Static code analyzers like `scan-build` are also able to detect more obvious cas
 Another thing that has been a discussion on my campus is how UB should be treated *in practice* during an evaluation. There is an infamous recurring line in 42 subjects that some of you probably know:
 > Your functions should not quit unexpectedly (segmentation fault, bus error, double free, etc.) **except for undefined behavior**.
 
-A common understanding of this line (at least on my campus) is that NULL checks placed in `Libft` functions are not necessary (the function should have an option to segfault if it receives a NULL pointer).
+To be very clear: **there is no other way** to get to a segmentation fault, bus error or double free than having undefined behavior in your code (unless in some edge cases where you raise signals yourself).
 
-Since Moulinette does not let us use assertions and the other option would be to silence the error happening (by simply returning from the function), I also share this opinion. This **does not mean however**, that if any such function used later in a bigger project (like cube) actually *does* receive a NULL (either because of a missing malloc protection or other mistake) and segfaults, that the project is still passable. Even though, very strictly speaking, cube eventually died because of UB that happened at runtime, and one could understand the subject as allowing this.
+This makes the line read like segmentation fault, bus error and other such behaviors are in fact *allowed by the subject*. This is, however a very brave interpretation and is in strong contrast with how we generally treat these events during evals (putting the `Crash` flag on a segfault for example).
 
-At the same time, I really do not know what kind of segfault or double free the subject is thinking of that *does not come from* undefined behavior.
+I believe the confusion can be cleared up if we see that the line in question is talking about your **functions**. If you check the `man` pages of certain C functions, you can often see sentences like:
+
+> the results are undefined if source and destination buffers overlap.
+
+Similarly, when *you* write a function, you have the right to say: "when you use my function, only pass arguments that are formatted `x` way or satisfy `y` condition." Then, just like it is your responsibility to avoid using C code in a way it is not meant to be used, it will be the responsibility of the person using your functions (should this be you in a later project, or an evaluator of your `libft`) to respect these rules.
+
+If the rules are not respected, anything can happen.
+
+This way of interpretation also means that `NULL` checks placed in `libft` functions are not necessary (the function should have an option to segfault if it receives a `NULL` pointer). You can declare this behavior as undefined, and one should take care to protect their mallocs and never pass `NULL` to such a function (it is, arguably, nice to document such decisions with comments in your code).
+
+Most `libc` implementations behave the exact same way. Since Moulinette does not let us use assertions and the other option would be to silence the error happening (by simply returning from the function), I also support this approach.
+
+This **does not mean however**, that if any such function used later in a bigger project (like cube) actually *does* receive a `NULL` (either because of a missing malloc protection or other mistake) and segfaults, that the project is still passable. In this case, self-imposed rules were violated and both the function and the language were used in a way they were not meant to be used. And similarly, I stand for a position of not passing code with any other type of UB in it, as it basically turns any project into a black box the usage of which has an officially unexpected outcome.
+
+###### (Yes, I also have UB in my code all the time. This is a never-ending cat-and-mouse game whose only solution is probably switching to a different language as soon as it is possible. But for the time being, while we are stuck with C, we have no other choice than to play it. I guess 42 was never about having it easy.)
 
 ## Useful links for further reading
 
